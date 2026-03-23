@@ -255,11 +255,23 @@ else{var old=localStorage.getItem('dt-pre');if(old){var o=JSON.parse(old);Object
 }catch(e){}
 }
 
+function scoreM(name,q){
+if(name===q)return 0;
+var p=name.split('_');
+for(var i=0;i<p.length;i++){if(p[i]===q)return 1;}
+if(name.indexOf(q)!==-1)return 2;
+return 3;
+}
+
 function filter(){
 var t=all;
 if(mj){t=t.filter(function(x){return x.p.mj===mj});if(mn)t=t.filter(function(x){return x.p.mn===mn});}
 var q=document.getElementById('q').value.trim().toLowerCase();
-if(q){var w=q.split(/\s+/);t=t.filter(function(x){return w.every(function(s){return x.s.indexOf(s)!==-1})});}
+if(q){var w=q.split(/\s+/);
+t=t.filter(function(x){return w.every(function(s){return x.s.indexOf(s)!==-1})});
+t.forEach(function(x){var nm=x.n.toLowerCase();x._sc=w.reduce(function(m,s){return Math.max(m,scoreM(nm,s))},0);});
+return t.sort(function(a,b){return a._sc!==b._sc?a._sc-b._sc:b.cnt-a.cnt});
+}
 return t.sort(function(a,b){return b.cnt-a.cnt});
 }
 
