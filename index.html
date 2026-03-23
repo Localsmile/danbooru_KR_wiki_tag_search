@@ -101,10 +101,10 @@ tr.pk td{background:rgba(110,154,255,.05)}
 .md-h span{font-weight:600;font-size:calc(15px + var(--fs))}
 .md-b{flex:1;overflow-y:auto;padding:12px 16px}
 .md-f{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--bd);flex-shrink:0;flex-wrap:wrap}
-.pm-sv{display:flex;gap:4px;align-items:center;padding:10px;background:var(--s2);border-radius:var(--r);margin-bottom:12px}
-.pm-sv input{flex:1;padding:6px 8px;min-width:0}
-.pm-sv select{padding:6px;max-width:120px}
-.pm-sv button{padding:6px 12px;white-space:nowrap}
+#sv{display:none;margin-top:8px;gap:4px;align-items:center;padding:8px;background:var(--s2);border-radius:var(--r);flex-wrap:wrap}
+#sv.v{display:flex}
+#sv input{flex:1;padding:6px 8px;min-width:100px}
+#sv select{padding:6px;max-width:130px}
 .pm-grp{margin-bottom:6px}
 .pm-gh{display:flex;justify-content:space-between;align-items:center;padding:5px 4px;cursor:pointer;user-select:none;color:var(--tx2);font-size:calc(13px + var(--fs));border-radius:3px}
 .pm-gh:hover{background:var(--s2)}
@@ -156,19 +156,21 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div id="col">
 <div id="cbar">
 <div class="cbl"><button id="cpb">복사</button><button id="clb" style="color:var(--red)">초기화</button><span class="cnt" id="cnt"></span></div>
+<button id="svt">프리셋 저장</button>
 </div>
 <div class="tags" id="ptags"></div>
 <div class="nlbl" id="nlbl" style="display:none"><span>네거티브</span><button id="cnb">복사</button></div>
 <div class="tags" id="ntags"></div>
+<div id="sv"><input id="svn" placeholder="프리셋 이름 입력"><select id="svf"><option value="">미분류</option></select><button id="svs">저장</button><button id="svc" style="color:var(--tx3)">취소</button></div>
 </div>
 <div id="fmt">
-<span class="fl">접두사</span><button data-a="">없음</button><button data-a="@">@</button><button data-a="artist:">artist:</button>
+<span class="fl">아티스트 접두사</span><button data-a="">없음</button><button data-a="@">@</button><button data-a="artist:">artist:</button>
 <div class="sp"></div>
-<span class="fl">형식</span><button data-f="0">a_b</button><button data-f="1">a b</button>
+<span class="fl">태그 형식</span><button data-f="0">밑줄 a_b</button><button data-f="1">공백 a b</button>
 <div class="sp"></div>
-<span class="fl">괄호</span><button data-e="0">()</button><button data-e="1">\(\)</button>
+<span class="fl">괄호 처리</span><button data-e="0">그대로 ()</button><button data-e="1">이스케이프 \(\)</button>
 <div class="sp"></div>
-<span class="fl">구분</span><button data-s="cs">,</button><button data-s="nl">↵</button>
+<span class="fl">복사 구분</span><button data-s="cs">쉼표</button><button data-s="nl">줄바꿈</button>
 </div>
 <div id="bar"><span>클릭: 추가 · shift+클릭: 네거티브 · 다시 클릭: 제거</span><div class="bar-r"><button id="negm">N</button><button id="pmopen">프리셋</button></div></div>
 <div id="res">
@@ -280,6 +282,7 @@ rd.scrollTop=st;
 function renderCol(){
 var el=document.getElementById('col'),pe=document.getElementById('ptags'),ne=document.getElementById('ntags'),nl=document.getElementById('nlbl');
 el.className=pos.length||neg.length?'v':'';
+if(!pos.length&&!neg.length)document.getElementById('sv').classList.remove('v');
 var total=pos.length+neg.length;
 document.getElementById('cnt').textContent=total?total+'개':'';
 pe.innerHTML=pos.map(function(t){return'<span class="tg p'+(t.c===-1?' cu':'')+'" data-c="'+t.c+'">'+esc(fmtTag(t.n,t.c))+' <span class="x" data-n="'+esc(t.n)+'" data-w="p">&times;</span></span>'}).join('');
@@ -333,7 +336,6 @@ function renderPM(){
 var h='';
 if(pmView==='list'){
 document.getElementById('pmtitle').textContent='프리셋';
-h+='<div class="pm-sv"><input id="pmn" placeholder="프리셋 이름"><select id="pmf"></select><button id="pmsv">저장</button></div>';
 var byF={},root=[];
 presets.forEach(function(p){if(p.folder){if(!byF[p.folder])byF[p.folder]=[];byF[p.folder].push(p);}else{root.push(p);}});
 var allF=folders.slice();
@@ -367,7 +369,6 @@ h+='<div class="pm-ad"><input id="pmci" placeholder="커스텀 태그 추가"><b
 h+='<div class="pm-da"><button id="pmload" style="flex:1">불러오기</button><button id="pmdel" style="color:var(--red)">삭제</button></div>';
 }
 document.getElementById('pmb').innerHTML=h;
-if(pmView==='list'){populateFolderSelect(document.getElementById('pmf'),'');}
 }
 
 var timer;
@@ -392,6 +393,10 @@ document.getElementById('ntags').addEventListener('click',function(e){if(e.targe
 document.getElementById('cpb').addEventListener('click',function(){if(!pos.length){toast('비어있음');return;}navigator.clipboard.writeText(pos.map(function(t){return fmtTag(t.n,t.c)}).join(getSep())).then(function(){toast(pos.length+'개 복사됨');});});
 document.getElementById('cnb').addEventListener('click',function(){if(!neg.length)return;navigator.clipboard.writeText(neg.map(function(t){return fmtTag(t.n,t.c)}).join(getSep())).then(function(){toast('네거티브 '+neg.length+'개 복사됨');});});
 document.getElementById('clb').addEventListener('click',function(){pos=[];neg=[];renderCol();});
+document.getElementById('svt').addEventListener('click',function(){var sv=document.getElementById('sv');if(sv.classList.toggle('v')){populateFolderSelect(document.getElementById('svf'),'');document.getElementById('svn').value='';setTimeout(function(){document.getElementById('svn').focus()},50);}});
+document.getElementById('svs').addEventListener('click',function(){var name=document.getElementById('svn').value.trim();if(!name){toast('이름을 입력하세요');document.getElementById('svn').focus();return;}var folder=document.getElementById('svf').value;if(folder==='__new__')folder='';presets.push({id:uid(),name:name,folder:folder,p:pos.slice(),n:neg.slice()});save();document.getElementById('sv').classList.remove('v');toast('"'+name+'" 저장됨');});
+document.getElementById('svc').addEventListener('click',function(){document.getElementById('sv').classList.remove('v');});
+document.getElementById('svf').addEventListener('change',function(){if(this.value==='__new__'){var n=prompt('폴더 이름:');if(n&&n.trim()){n=n.trim();if(folders.indexOf(n)===-1){folders.push(n);save();}populateFolderSelect(this,n);}else{this.value='';}}});
 document.getElementById('negm').addEventListener('click',function(){negMode=!negMode;this.classList.toggle('on',negMode);toast(negMode?'네거티브 모드':'일반 모드');});
 document.getElementById('pmopen').addEventListener('click',function(){document.getElementById('pm').classList.add('v');pmView='list';renderPM();});
 document.getElementById('pmnf').addEventListener('click',function(){
@@ -443,18 +448,9 @@ var pr=presets.find(function(x){return x.id===pmPid});if(!pr)return;
 var tag={n:v.replace(/\s+/g,'_'),c:-1};
 if(b.id==='pmcap'){if(!pr.p)pr.p=[];pr.p.push(tag);}else{if(!pr.n)pr.n=[];pr.n.push(tag);}
 input.value='';save();renderPM();return;}
-if(b.id==='pmsv'){
-var ni=document.getElementById('pmn'),name=ni.value.trim();if(!name){toast('이름을 입력하세요');ni.focus();return;}
-var sel=document.getElementById('pmf'),folder=sel.value;if(folder==='__new__')folder='';
-presets.push({id:uid(),name:name,folder:folder,p:pos.slice(),n:neg.slice()});
-ni.value='';save();renderPM();toast('저장됨');return;}
 });
-document.getElementById('pmb').addEventListener('change',function(e){
-if(e.target.id==='pmf'&&e.target.value==='__new__'){
-var n=prompt('폴더 이름:');
-if(n&&n.trim()){n=n.trim();if(folders.indexOf(n)===-1){folders.push(n);save();}
-populateFolderSelect(e.target,n);}else{e.target.value='';}}
-});
+
+
 document.getElementById('pm').addEventListener('click',function(e){if(e.target===this)closePM();});
 var obs=new IntersectionObserver(function(entries){
 if(entries[0].isIntersecting&&shown<lastTotal){shown+=200;render();}
