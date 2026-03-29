@@ -119,7 +119,7 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div id="app">
 <nav id="nav">
 <a href="index.html" class="on">태그 검색</a>
-<a href="converter.html">프롬프트 변환(기능 구현 중)</a>
+<a href="converter.html">프롬프트 변환</a>
 <a href="artist.html">아티스트 작품</a>
 </nav>
 <div id="top">
@@ -206,18 +206,14 @@ document.getElementById('tb').addEventListener('click',function(e){if(lpBlock){l
 document.getElementById('ptags').addEventListener('click',function(e){if(e.target.classList.contains('x')){var n=e.target.dataset.n;var ai=pos.findIndex(function(t){return t.n===n});if(ai!==-1)pos.splice(ai,1);renderCol()}});
 document.getElementById('cpb').addEventListener('click',function(){if(!pos.length){toast('비어있음');return}navigator.clipboard.writeText(pos.map(function(t){return fmtTag(t.n,t.c)}).join(getSep())).then(function(){toast(pos.length+'개 복사됨')})});
 document.getElementById('clb').addEventListener('click',function(){pos=[];renderCol()});
-if(!isMobile){
 document.getElementById('tb').addEventListener('mouseover',function(e){if(!cfg.preview)return;var tr=e.target.closest('tr.r');if(tr===pvRow)return;clearTimeout(pvTimer);clearTimeout(pvHideTimer);if(!tr){pvHideTimer=setTimeout(hidePreview,100);return}pvRow=tr;pvTimer=setTimeout(function(){showPv(tr)},300)});
 document.getElementById('res').addEventListener('mouseleave',function(){if(!cfg.preview)return;clearTimeout(pvTimer);pvHideTimer=setTimeout(hidePreview,200)});
 document.getElementById('pv').addEventListener('mouseenter',function(){clearTimeout(pvHideTimer)});
 document.getElementById('pv').addEventListener('mouseleave',function(){hidePreview()});
-}
-if(isMobile){
 document.getElementById('tb').addEventListener('touchstart',function(e){if(!cfg.preview)return;var tr=e.target.closest('tr.r');if(!tr)return;lpBlock=false;lpTimer=setTimeout(function(){lpBlock=true;showPv(tr)},500)},{passive:true});
 document.getElementById('tb').addEventListener('touchend',function(){clearTimeout(lpTimer)},{passive:true});
 document.getElementById('tb').addEventListener('touchmove',function(){clearTimeout(lpTimer)},{passive:true});
 document.addEventListener('click',function(e){if(document.getElementById('pv').classList.contains('v')&&!e.target.closest('#pv'))hidePreview()});
-}
 document.getElementById('res').addEventListener('scroll',function(){hidePreview();if(this.scrollTop+this.clientHeight>=this.scrollHeight-150&&shown<lastTotal){shown+=200;render()}});
 var obs=new IntersectionObserver(function(ent){if(ent[0].isIntersecting&&shown<lastTotal){shown+=200;render()}},{root:document.getElementById('res'),rootMargin:'300px 0px'});
 obs.observe(document.getElementById('sentinel'));
