@@ -37,7 +37,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 .an a:hover{text-decoration:underline}
 .av{display:flex;align-items:center;gap:8px}
 .av button{padding:4px 10px;font-size:calc(14px + var(--fs));flex-shrink:0}
-.av img{width:150px;height:150px;object-fit:cover;border-radius:3px;background:var(--s2);display:block;cursor:pointer}
+.av img{max-height:240px;max-width:340px;object-fit:contain;border-radius:3px;background:var(--s2);display:block;cursor:pointer}
 .av img:hover{opacity:.85}
 .ac{font-size:calc(11px + var(--fs));color:var(--tx3);min-width:30px;text-align:center}
 .ae{color:var(--red);font-size:calc(12px + var(--fs))}
@@ -47,7 +47,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 #app{padding:8px;gap:6px;max-width:100%}
 #nav a{padding:5px 8px;font-size:calc(11px + var(--fs))}
 #inp{padding:8px}
-.av img{width:120px;height:120px}
+.av img{max-height:180px;max-width:280px}
 .av button{padding:4px 8px;font-size:calc(12px + var(--fs))}
 }
 </style>
@@ -84,7 +84,7 @@ function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=
 async function loadCSV(){try{var r=await fetch(CSV);var text=await r.text();var lines=text.split('\n');for(var i=1;i<lines.length;i++){var ln=lines[i].trim();if(!ln)continue;var cols=parseCSV(ln);if(cols.length>=2&&+cols[1]===1)artistDB.add(cols[0].toLowerCase())}}catch(e){}}
 function extractArtists(text){var found=[];var seen=new Set();function add(n){n=n.trim().replace(/[\s]+/g,'_').replace(/[,{}[\]()]+$/,'').toLowerCase();if(n&&!seen.has(n)){seen.add(n);found.push(n)}}text.replace(/artist\s*:\s*([a-z0-9_\-\s().']+)/gi,function(m,name){add(name)});text.replace(/@\(([^:)]+)(?::[^)]+)?\)/g,function(m,name){add(name)});var clean=text;clean=clean.replace(/artist\s*:[^,]+/gi,'');clean=clean.replace(/@\([^)]+\)/g,'');clean=clean.replace(/<[^>]+>/g,'');clean=clean.replace(/\d+\.?\d*::/g,'');clean=clean.replace(/::/g,'');clean=clean.replace(/[{}[\]()\\]/g,' ');clean.split(',').forEach(function(t){t=t.trim().replace(/:\s*[\d.]+\s*$/,'').trim();var n=t.replace(/[\s]+/g,'_').toLowerCase();if(n&&artistDB.has(n)&&!seen.has(n)){seen.add(n);found.push(n)}});return found}
 async function dFetch(path){if(!useProxy){try{var r=await fetch(DAPI+path);return r}catch(e){useProxy=true}}return fetch(PROXY+encodeURIComponent(DAPI+path))}
-async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=6');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){if(p.preview_file_url&&imgs.length<6)imgs.push({u:p.preview_file_url,id:p.id})});return imgs}catch(e){return[]}}
+async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=6');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){var iu=p.large_file_url||p.preview_file_url;if(iu&&imgs.length<6)imgs.push({u:iu,id:p.id})});return imgs}catch(e){return[]}}
 function renderTable(){var tb=document.getElementById('tbody');if(!results.length){tb.innerHTML='';return}document.getElementById('info').textContent='';var h='';for(var i=0;i<results.length;i++){var a=results[i];h+='<tr><td class="an"><a href="'+DAPI+'/posts?tags='+encodeURIComponent(a.name)+'" target="_blank" rel="noopener">'+esc(a.name)+'</a></td><td>';if(a.status==='loading'){h+='<span class="al">...</span>'}else if(!a.imgs.length){h+='<span class="ae">결과 없음</span>'}else{h+='<div class="av"><button onclick="pv('+i+',-1)">◀</button><a href="'+DAPI+'/posts/'+a.imgs[a.idx].id+'" target="_blank" rel="noopener"><img src="'+esc(a.imgs[a.idx].u)+'"></a><button onclick="pv('+i+',1)">▶</button><span class="ac">'+(a.idx+1)+'/'+a.imgs.length+'</span></div>'}h+='</td></tr>'}tb.innerHTML=h}
 window.pv=function(idx,dir){var a=results[idx];if(!a||!a.imgs.length)return;a.idx=(a.idx+dir+a.imgs.length)%a.imgs.length;renderTable()};
 async function run(){var text=document.getElementById('prompt').value.trim();if(!text){document.getElementById('status').textContent='프롬프트 입력';return}var artists=extractArtists(text);if(!artists.length){document.getElementById('status').textContent='아티스트 태그를 찾을 수 없습니다';results=[];renderTable();document.getElementById('info').textContent='아티스트를 찾을 수 없습니다';return}document.getElementById('status').textContent=artists.length+'명 추출됨';results=artists.map(function(n){return{name:n,imgs:[],idx:0,status:'loading'}});renderTable();for(var i=0;i<results.length;i++){results[i].imgs=await fetchImages(results[i].name);results[i].status='done';renderTable()}}
