@@ -4,15 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Tags</title>
-
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-NR69TKP6');</script>
-<!-- End Google Tag Manager -->
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -44,15 +35,24 @@ select{padding:4px 6px}
 #fsz button:first-child{border-radius:var(--r) 0 0 var(--r)}
 #fsz button:last-child{border-radius:0 var(--r) var(--r) 0;border-left:none}
 #fsz span{padding:5px 6px;background:var(--s1);border:1px solid var(--bd);border-left:none;border-right:none;font-size:calc(11px + var(--fs));color:var(--tx2);min-width:30px;text-align:center}
-#note{font-size:calc(12px + var(--fs));color:var(--tx3)}
-#cats{display:flex;gap:3px;flex-wrap:wrap;padding-bottom:1px}
-#cats span{padding:3px 10px;border-radius:12px;background:var(--s2);border:1px solid transparent;cursor:pointer;font-size:calc(13px + var(--fs));user-select:none;transition:all .12s}
+#cats{display:flex;gap:5px;flex-wrap:wrap}
+#cats span{padding:4px 12px;border-radius:12px;background:var(--s2);border:1px solid transparent;cursor:pointer;font-size:calc(13px + var(--fs));user-select:none;transition:all .12s}
 #cats span:hover{border-color:var(--s4)}
 #cats span.on{background:var(--acd);border-color:var(--ac);color:#cde}
-#subs{display:flex;gap:3px;flex-wrap:wrap;min-height:0}
-#subs span{padding:2px 8px;border-radius:10px;background:var(--s1);border:1px solid var(--bd);cursor:pointer;font-size:calc(12px + var(--fs));transition:all .12s}
+#subp{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:8px 10px;display:none}
+#subp.v{display:block}
+#subs{display:flex;gap:4px;flex-wrap:wrap}
+#subs span{padding:3px 9px;border-radius:10px;background:var(--s2);border:1px solid var(--bd);cursor:pointer;font-size:calc(12px + var(--fs));transition:all .12s}
 #subs span:hover{border-color:var(--tx3)}
 #subs span.on{background:var(--acd);border-color:var(--ac);color:#cde}
+#opt{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+#fmt{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+#fmt .fl{color:var(--tx2);font-size:calc(11px + var(--fs));margin-left:6px}
+#fmt .fl:first-child{margin-left:0}
+#fmt button{font-size:calc(11px + var(--fs));padding:3px 8px;color:var(--tx2)}
+#fmt button.on{background:var(--acd);border-color:var(--ac);color:#cde}
+#fmt .sp{width:1px;height:14px;background:var(--bd);margin:0 6px;flex-shrink:0}
+#note{font-size:calc(11px + var(--fs));color:var(--tx3)}
 #col{display:none;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px}
 #col.v{display:block}
 #cbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
@@ -67,12 +67,6 @@ select{padding:4px 6px}
 .tg[data-c="-1"]{border-left-color:var(--cx);border-left-style:dashed}
 .tg .x{cursor:pointer;color:var(--tx3);font-size:inherit;line-height:1}
 .tg .x:hover{color:var(--red)}
-#fmt{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
-#fmt .fl{color:var(--tx3);font-size:calc(11px + var(--fs));margin-left:8px}
-#fmt .fl:first-child{margin-left:0}
-#fmt button{font-size:calc(11px + var(--fs));padding:3px 8px;color:var(--tx2)}
-#fmt button.on{background:var(--acd);border-color:var(--ac);color:#cde}
-#fmt .sp{width:1px;height:14px;background:var(--bd);margin:0 2px;flex-shrink:0}
 #bar{color:var(--tx3);font-size:calc(12px + var(--fs))}
 #res{flex:1;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--r);min-height:0}
 table{width:100%;border-collapse:collapse}
@@ -94,14 +88,15 @@ tr.pk td{background:rgba(110,154,255,.05)}
 .ds{font-size:calc(14px + var(--fs));line-height:1.5}
 .ds .c{color:var(--tx3);font-size:calc(12px + var(--fs))}
 #info{text-align:center;padding:16px;color:var(--tx3);font-size:calc(13px + var(--fs))}
-.tt{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--bd);color:var(--tx);padding:7px 14px;border-radius:var(--r);font-size:calc(12px + var(--fs));opacity:0;transition:all .2s;pointer-events:none;z-index:99}
+.tt{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--s3);border:1px solid var(--bd);color:var(--tx);padding:7px 14px;border-radius:var(--r);font-size:calc(13px + var(--fs));opacity:0;transition:all .2s;pointer-events:none;z-index:99;font-family:'SF Mono',Consolas,'Courier New',monospace}
 .tt.on{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:600px){
 #app{padding:8px;gap:6px;max-width:100%}
 #q{padding:10px}
 #cats span{padding:5px 11px}
 #subs span{padding:4px 10px}
-#fmt{gap:2px}
+#opt{padding:7px 10px}
+#fmt{gap:3px}
 #fmt .fl{margin-left:4px;font-size:calc(10px + var(--fs))}
 #fmt button{padding:3px 6px;font-size:calc(10px + var(--fs))}
 td{padding:6px 8px}
@@ -111,34 +106,34 @@ tr.r{-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NR69TKP6"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 <div id="app">
 <div id="top">
 <input id="q" type="text" placeholder="태그, 키워드 검색..." autofocus>
 <div id="fsz"><button id="fsm">A-</button><span id="fsv">18</span><button id="fsp">A+</button></div>
 </div>
-<div id="note">2026.03.23 기준 · 카운트 100 이상 번역, 26.03.29) 파편화된 대분류/중분류 재배치</div>
 <div id="cats"></div>
-<div id="subs"></div>
+<div id="subp"><div id="subs"></div></div>
+<div id="opt">
+<div id="fmt">
+<button id="qkb">바로 복사</button>
+<div class="sp"></div>
+<span class="fl">아티스트</span><button data-a="">없음</button><button data-a="@">@</button><button data-a="artist:">artist:</button>
+<div class="sp"></div>
+<span class="fl">띄어쓰기</span><button data-f="0">밑줄 a_b</button><button data-f="1">공백 a b</button>
+<div class="sp"></div>
+<span class="fl">괄호</span><button data-e="0">그대로 ()</button><button data-e="1">이스케이프 \(\)</button>
+<div class="sp"></div>
+<span class="fl">구분자</span><button data-s="cs">쉼표</button><button data-s="nl">줄바꿈</button>
+</div>
+<div id="note">2026.03.23 기준 · 카운트 100 이상 번역</div>
+</div>
 <div id="col">
 <div id="cbar">
 <div class="cbl"><button id="cpb">복사</button><button id="clb" style="color:var(--red)">초기화</button><span class="cnt" id="cnt"></span></div>
 </div>
 <div class="tags" id="ptags"></div>
 </div>
-<div id="fmt">
-<span class="fl">아티스트 접두사</span><button data-a="">없음</button><button data-a="@">@</button><button data-a="artist:">artist:</button>
-<div class="sp"></div>
-<span class="fl">띄어쓰기</span><button data-f="0">밑줄 a_b</button><button data-f="1">공백 a b</button>
-<div class="sp"></div>
-<span class="fl">괄호 처리</span><button data-e="0">그대로 ()</button><button data-e="1">이스케이프 \(\)</button>
-<div class="sp"></div>
-<span class="fl">복사 구분</span><button data-s="cs">쉼표</button><button data-s="nl">줄바꿈</button>
-</div>
-<div id="bar">클릭: 추가 · 다시 클릭: 제거</div>
+<div id="bar"></div>
 <div id="res">
 <table><thead><tr><th style="min-width:140px">태그</th><th>설명</th></tr></thead><tbody id="tb"></tbody></table>
 <div id="sentinel" style="height:1px"></div>
@@ -151,11 +146,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 var CSV='danbooru_tags_classified.csv',TAXF='taxonomy.json';
 var all=[],tax={},pos=[];
 var mj=null,mn=null,shown=200,lastTotal=0;
-var cfg={art:'',space:false,sep:'cs',pesc:false,fs:18};
+var cfg={art:'',space:false,sep:'cs',pesc:false,fs:18,quick:true};
 
 function fmt(n){return n.toLocaleString();}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function getSep(){return cfg.sep==='nl'?'\n':', ';}
+function getSep(){return cfg.sep==='nl'?'\n':',  ';}
 
 function parseCSV(ln){
 var r=[],c='',q=false;
@@ -200,7 +195,8 @@ function load(){
 try{
 var c=localStorage.getItem('dt-cfg');
 if(c){var p=JSON.parse(c);cfg.art=p.art||'';cfg.space=!!p.space;cfg.sep=p.sep||'cs';cfg.pesc=!!p.pesc;
-if(typeof p.fs==='number'&&p.fs<10){var om=[14,16,18];cfg.fs=om[p.fs]||18;}else{cfg.fs=p.fs||18;}}
+if(typeof p.fs==='number'&&p.fs<10){var om=[14,16,18];cfg.fs=om[p.fs]||18;}else{cfg.fs=p.fs||18;}
+cfg.quick=typeof p.quick==='boolean'?p.quick:true;}
 var p2=localStorage.getItem('dt-pos');if(p2)pos=JSON.parse(p2);
 }catch(e){}
 }
@@ -225,11 +221,15 @@ return t.sort(function(a,b){return a._sc!==b._sc?a._sc-b._sc:b.cnt-a.cnt});
 return t.sort(function(a,b){return b.cnt-a.cnt});
 }
 
+function updateBar(){
+document.getElementById('bar').textContent=cfg.quick?'클릭: 복사':'클릭: 추가 · 다시 클릭: 제거';
+}
+
 function render(){
 var rd=document.getElementById('res'),st=rd.scrollTop;
 var tags=filter();lastTotal=tags.length;
 var sl=tags.slice(0,shown),h='';
-for(var i=0;i<sl.length;i++){var t=sl[i],pk=has(pos,t.n);
+for(var i=0;i<sl.length;i++){var t=sl[i],pk=!cfg.quick&&has(pos,t.n);
 h+='<tr class="r'+(pk?' pk':'')+'" data-n="'+esc(t.n)+'" data-c="'+t.cat+'">';
 h+='<td class="tc"><span class="nm">'+esc(t.n)+'</span> <span class="ct">('+fmt(t.cnt)+')</span>';
 if(t.p.kw.length)h+='<div class="kw">'+t.p.kw.map(esc).join(' · ')+'</div>';
@@ -244,13 +244,18 @@ rd.scrollTop=st;
 
 function renderCol(){
 var el=document.getElementById('col'),pe=document.getElementById('ptags');
-el.className=pos.length?'v':'';
+el.className=(!cfg.quick&&pos.length)?'v':'';
 document.getElementById('cnt').textContent=pos.length?pos.length+'개':'';
 pe.innerHTML=pos.map(function(t){return'<span class="tg'+(t.c===-1?' cu':'')+'" data-c="'+t.c+'">'+esc(fmtTag(t.n,t.c))+' <span class="x" data-n="'+esc(t.n)+'">&times;</span></span>'}).join('');
 save();render();
 }
 
 function toggle(name,cat){
+if(cfg.quick){
+var t=fmtTag(name,cat);
+navigator.clipboard.writeText(t).then(function(){toast(t+' 복사됨');});
+return;
+}
 var ai=pos.findIndex(function(t){return t.n===name});
 if(ai!==-1)pos.splice(ai,1);else pos.push({n:name,c:cat});
 renderCol();
@@ -263,8 +268,9 @@ el.innerHTML=h;buildSubs();
 }
 
 function buildSubs(){
-var el=document.getElementById('subs');
-if(!mj||!tax[mj]){el.innerHTML='';return;}
+var el=document.getElementById('subs'),sp=document.getElementById('subp');
+if(!mj||!tax[mj]){el.innerHTML='';sp.classList.remove('v');return;}
+sp.classList.add('v');
 var h='<span'+(mn===null?' class="on"':'')+' data-v="">전체</span>';
 tax[mj].forEach(function(s){h+='<span'+(mn===s?' class="on"':'')+' data-v="'+esc(s)+'">'+esc(s)+'</span>';});
 el.innerHTML=h;
@@ -275,6 +281,7 @@ document.querySelectorAll('#fmt [data-a]').forEach(function(b){b.classList.toggl
 document.querySelectorAll('#fmt [data-f]').forEach(function(b){b.classList.toggle('on',b.dataset.f===(cfg.space?'1':'0'))});
 document.querySelectorAll('#fmt [data-e]').forEach(function(b){b.classList.toggle('on',b.dataset.e===(cfg.pesc?'1':'0'))});
 document.querySelectorAll('#fmt [data-s]').forEach(function(b){b.classList.toggle('on',b.dataset.s===(cfg.sep||'cs'))});
+document.getElementById('qkb').classList.toggle('on',!!cfg.quick);
 }
 
 var timer;
@@ -285,6 +292,7 @@ document.getElementById('fsm').addEventListener('click',function(){cfg.fs=Math.m
 document.getElementById('fsp').addEventListener('click',function(){cfg.fs=Math.min(24,cfg.fs+1);applyFs();save();});
 document.getElementById('fmt').addEventListener('click',function(e){
 var b=e.target.closest('button');if(!b)return;
+if(b.id==='qkb'){cfg.quick=!cfg.quick;syncCfg();save();updateBar();renderCol();return;}
 if(b.dataset.a!==undefined){cfg.art=b.dataset.a;syncCfg();save();renderCol();}
 if(b.dataset.f!==undefined){cfg.space=b.dataset.f==='1';syncCfg();save();renderCol();}
 if(b.dataset.e!==undefined){cfg.pesc=b.dataset.e==='1';syncCfg();save();renderCol();}
@@ -294,7 +302,7 @@ document.getElementById('q').addEventListener('input',debounce(function(){shown=
 document.getElementById('cats').addEventListener('click',function(e){var v=e.target.dataset.v;if(v===undefined)return;mj=v||null;mn=null;shown=200;buildCats();render();});
 document.getElementById('subs').addEventListener('click',function(e){var v=e.target.dataset.v;if(v===undefined)return;mn=v||null;shown=200;buildSubs();render();});
 document.getElementById('tb').addEventListener('click',function(e){var tr=e.target.closest('tr.r');if(!tr)return;toggle(tr.dataset.n,+tr.dataset.c);});
-document.getElementById('ptags').addEventListener('click',function(e){if(e.target.classList.contains('x'))toggle(e.target.dataset.n,0);});
+document.getElementById('ptags').addEventListener('click',function(e){if(e.target.classList.contains('x')){var n=e.target.dataset.n;var ai=pos.findIndex(function(t){return t.n===n});if(ai!==-1)pos.splice(ai,1);renderCol();}});
 document.getElementById('cpb').addEventListener('click',function(){if(!pos.length){toast('비어있음');return;}navigator.clipboard.writeText(pos.map(function(t){return fmtTag(t.n,t.c)}).join(getSep())).then(function(){toast(pos.length+'개 복사됨');});});
 document.getElementById('clb').addEventListener('click',function(){pos=[];renderCol();});
 var obs=new IntersectionObserver(function(entries){
@@ -305,7 +313,7 @@ document.getElementById('res').addEventListener('scroll',function(){
 if(this.scrollTop+this.clientHeight>=this.scrollHeight-150&&shown<lastTotal){shown+=200;render();}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('q').value='';shown=200;render();document.getElementById('q').focus();}});
-syncCfg();
+syncCfg();updateBar();
 }
 
 async function init(){
