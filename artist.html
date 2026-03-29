@@ -60,7 +60,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 <a href="artist.html" class="on">아티스트 작품</a>
 </nav>
 <div id="inp">
-<textarea id="prompt" rows="3" placeholder="프롬프트 붙여넣기 (NAI / Local 자동 감지)"></textarea>
+<textarea id="prompt" rows="3" placeholder="프롬프트 붙여넣기 (NAI / 로컬 프롬프트에서 아티스트 태그 자동 추출)"></textarea>
 <div id="acts">
 <button class="run" id="gobtn">추출</button>
 <span class="st" id="status"></span>
@@ -71,6 +71,9 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 <div id="info">프롬프트를 붙여넣고 추출 버튼 클릭</div>
 </div>
 </div>
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fc6eda06bf1b423d98290d61546f75d5"}'></script>
+<!-- End Cloudflare Web Analytics -->
 <script>
 (function(){
 var CSV='danbooru_tags_classified.csv';
