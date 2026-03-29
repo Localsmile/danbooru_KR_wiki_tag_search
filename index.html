@@ -18,6 +18,10 @@ button:active{transform:scale(.97)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--s4);border-radius:3px}
 #app{display:flex;flex-direction:column;height:100dvh;padding:10px 16px;gap:7px;max-width:1000px;margin:0 auto;width:100%}
+#nav{display:flex;gap:2px;border-bottom:1px solid var(--bd);padding-bottom:4px}
+#nav a{color:var(--tx3);text-decoration:none;padding:5px 12px;font-size:calc(12px + var(--fs));border-radius:var(--r) var(--r) 0 0;transition:all .12s}
+#nav a:hover{color:var(--tx2);background:var(--s2)}
+#nav a.on{color:var(--ac);border-bottom:2px solid var(--ac)}
 #top{display:flex;gap:6px;align-items:center}
 #q{flex:1;min-width:0;padding:8px 12px;font-size:calc(17px + var(--fs));background:var(--s1)}
 #q::placeholder{color:var(--tx3)}
@@ -95,6 +99,7 @@ tr.pk td{background:rgba(110,154,255,.05)}
 .pv-ld{padding:8px 16px;color:var(--tx3);font-size:calc(11px + var(--fs))}
 @media(max-width:600px){
 #app{padding:8px;gap:6px;max-width:100%}
+#nav a{padding:5px 8px;font-size:calc(11px + var(--fs))}
 #modes{gap:10px;padding:7px 10px}
 #q{padding:10px}
 #cats span{padding:5px 11px}
@@ -112,6 +117,11 @@ tr.r{-webkit-user-select:none;user-select:none}
 </head>
 <body>
 <div id="app">
+<nav id="nav">
+<a href="index.html" class="on">태그 검색</a>
+<a href="converter.html">프롬프트 변환</a>
+<a href="artist.html">아티스트 작품</a>
+</nav>
 <div id="top">
 <input id="q" type="text" placeholder="태그, 키워드 검색..." autofocus>
 <div id="fsz"><button id="fsm">A-</button><span id="fsv">18</span><button id="fsp">A+</button></div>
