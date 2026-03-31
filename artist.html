@@ -23,6 +23,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 #nav a{color:var(--tx3);text-decoration:none;padding:5px 12px;font-size:calc(12px + var(--fs));border-radius:var(--r) var(--r) 0 0;transition:all .12s}
 #nav a:hover{color:var(--tx2);background:var(--s2)}
 #nav a.on{color:var(--ac);border-bottom:2px solid var(--ac)}
+#desc{font-size:calc(11px + var(--fs));color:var(--tx2);padding:2px 0}
 #inp{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px}
 #inp textarea{width:100%}
 #acts{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
@@ -59,8 +60,9 @@ textarea{resize:vertical;padding:10px 12px;min-height:70px;font-size:calc(13px +
 <a href="converter.html">프롬프트 변환</a>
 <a href="artist.html" class="on">아티스트 작품</a>
 </nav>
+<div id="desc">프롬프트에서 아티스트 태그를 추출하고 Danbooru 작품 확인</div>
 <div id="inp">
-<textarea id="prompt" rows="3" placeholder="프롬프트 붙여넣기 (NAI / 로컬 프롬프트에서 아티스트 태그 자동 추출)"></textarea>
+<textarea id="prompt" rows="3" placeholder="프롬프트 붙여넣기 (NAI / Local 자동 감지)"></textarea>
 <div id="acts">
 <button class="run" id="gobtn">추출</button>
 <span class="st" id="status"></span>
@@ -90,7 +92,7 @@ async function dFetch(path){if(!useProxy){try{var r=await fetch(DAPI+path);retur
 async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=6');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){var iu=p.large_file_url||p.preview_file_url;if(iu&&imgs.length<6)imgs.push({u:iu,id:p.id})});return imgs}catch(e){return[]}}
 function renderTable(){var tb=document.getElementById('tbody');if(!results.length){tb.innerHTML='';return}document.getElementById('info').textContent='';var h='';for(var i=0;i<results.length;i++){var a=results[i];h+='<tr><td class="an"><a href="'+DAPI+'/posts?tags='+encodeURIComponent(a.name)+'" target="_blank" rel="noopener">'+esc(a.name)+'</a></td><td>';if(a.status==='loading'){h+='<span class="al">...</span>'}else if(!a.imgs.length){h+='<span class="ae">결과 없음</span>'}else{h+='<div class="av"><button onclick="pv('+i+',-1)">◀</button><a href="'+DAPI+'/posts/'+a.imgs[a.idx].id+'" target="_blank" rel="noopener"><img src="'+esc(a.imgs[a.idx].u)+'"></a><button onclick="pv('+i+',1)">▶</button><span class="ac">'+(a.idx+1)+'/'+a.imgs.length+'</span></div>'}h+='</td></tr>'}tb.innerHTML=h}
 window.pv=function(idx,dir){var a=results[idx];if(!a||!a.imgs.length)return;a.idx=(a.idx+dir+a.imgs.length)%a.imgs.length;renderTable()};
-async function run(){var text=document.getElementById('prompt').value.trim();if(!text){document.getElementById('status').textContent='프롬프트 입력';return}var artists=extractArtists(text);if(!artists.length){document.getElementById('status').textContent='아티스트 태그를 찾을 수 없습니다';results=[];renderTable();document.getElementById('info').textContent='아티스트를 찾을 수 없습니다';return}document.getElementById('status').textContent=artists.length+'명 추출됨';results=artists.map(function(n){return{name:n,imgs:[],idx:0,status:'loading'}});renderTable();for(var i=0;i<results.length;i++){results[i].imgs=await fetchImages(results[i].name);results[i].status='done';renderTable()}}
+async function run(){var text=document.getElementById('prompt').value.trim();if(!text){document.getElementById('status').textContent='프롬프트를 입력하세요';return}var artists=extractArtists(text);if(!artists.length){document.getElementById('status').textContent='아티스트 태그를 찾을 수 없습니다';results=[];renderTable();document.getElementById('info').textContent='아티스트를 찾을 수 없습니다';return}document.getElementById('status').textContent=artists.length+'명 추출됨';results=artists.map(function(n){return{name:n,imgs:[],idx:0,status:'loading'}});renderTable();for(var i=0;i<results.length;i++){results[i].imgs=await fetchImages(results[i].name);results[i].status='done';renderTable()}}
 document.getElementById('gobtn').addEventListener('click',run);
 document.getElementById('prompt').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();run()}});
 loadCSV();
