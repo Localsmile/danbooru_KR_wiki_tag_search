@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>프롬프트 변환</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--s1:#131313;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;--bd:#252525;--tx:#bbb;--tx2:#777;--tx3:#444;--ac:#6e9aff;--acd:#1a3060;--red:#c55;--r:5px;--fs:0px}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;font-size:calc(14px + var(--fs));-webkit-tap-highlight-color:transparent}
+input,select,button,textarea{font:inherit;color:var(--tx);background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);outline:none}
+input:focus,textarea:focus{border-color:var(--ac)}
+button{cursor:pointer;padding:5px 11px;transition:all .12s;white-space:nowrap}
+button:hover{background:var(--s3)}
+button:active{transform:scale(.97)}
+textarea{resize:vertical;padding:10px 12px;min-height:56px;font-size:calc(13px + var(--fs));line-height:1.5;background:var(--bg);width:100%;font-family:'SF Mono',Consolas,'Courier New',monospace}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--s4);border-radius:3px}
+#app{display:flex;flex-direction:column;height:100dvh;padding:10px 16px;gap:7px;max-width:1000px;margin:0 auto;width:100%}
+#nav{display:flex;gap:2px;border-bottom:1px solid var(--bd);padding-bottom:4px}
+#nav a{color:var(--tx3);text-decoration:none;padding:5px 12px;font-size:calc(12px + var(--fs));border-radius:var(--r) var(--r) 0 0;transition:all .12s}
+#nav a:hover{color:var(--tx2);background:var(--s2)}
+#nav a.on{color:var(--ac);border-bottom:2px solid var(--ac)}
+#dirs{display:flex;gap:2px}
+#dirs button{flex:1;padding:7px;text-align:center;font-size:calc(13px + var(--fs));background:var(--s1);border:1px solid var(--bd)}
+#dirs button.on{background:var(--acd);border-color:var(--ac);color:#cde}
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;min-height:0;padding-bottom:8px}
+.bx{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
+.or{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.or:last-child{margin-bottom:0}
+.fl{color:var(--tx2);font-size:calc(11px + var(--fs));flex-shrink:0}
+.or button{font-size:calc(11px + var(--fs));padding:3px 8px;color:var(--tx2)}
+.or button.on{background:var(--acd);border-color:var(--ac);color:#cde}
+.nc{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0 0}
+.nc.v{display:flex}
+.nc label{font-size:calc(10px + var(--fs));color:var(--tx3)}
+.nc input[type="range"]{width:100px;accent-color:var(--ac)}
+.nc input[type="number"]{width:55px;padding:2px 5px;font-size:calc(11px + var(--fs));text-align:center;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx)}
+.nv{font-size:calc(11px + var(--fs));color:var(--ac);min-width:28px}
+.ih{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ih span{font-size:calc(11px + var(--fs));color:var(--tx2)}
+.ih button{font-size:calc(10px + var(--fs));padding:2px 8px}
+.io+.io{margin-top:8px}
+#acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.run{background:var(--acd);border-color:var(--ac);color:#cde;padding:6px 16px}
+.wn{font-size:calc(10px + var(--fs));color:var(--red)}
+.neg-note{font-size:calc(10px + var(--fs));color:var(--tx3);margin-top:4px}
+#desc{font-size:calc(11px + var(--fs));color:var(--tx2);padding:2px 0}
+#help{display:none;line-height:1.7;color:var(--tx2)}
+#help.v{display:block}
+#help h4{color:var(--tx);margin:10px 0 3px;font-size:calc(12px + var(--fs))}
+#help h4:first-child{margin-top:0}
+#help code{background:var(--s3);padding:1px 4px;border-radius:2px;font-size:calc(10px + var(--fs));color:var(--ac)}
+#help ul{padding-left:16px;margin:0}
+#help li{margin:2px 0;font-size:calc(11px + var(--fs))}
+.tt{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--s3);border:1px solid var(--bd);color:var(--tx);padding:7px 14px;border-radius:var(--r);font-size:calc(13px + var(--fs));opacity:0;transition:all .2s;pointer-events:none;z-index:99;font-family:'SF Mono',Consolas,'Courier New',monospace}
+.tt.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:600px){
+#app{padding:8px;gap:6px;max-width:100%}
+#nav a{padding:5px 8px;font-size:calc(11px + var(--fs))}
+#dirs button{padding:6px;font-size:calc(12px + var(--fs))}
+.bx{padding:8px 10px}
+.or button{padding:3px 6px;font-size:calc(10px + var(--fs))}
+.nc input[type="range"]{width:80px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<nav id="nav">
+<a href="index.html">태그 검색</a>
+<a href="converter.html" class="on">프롬프트 변환</a>
+<a href="artist.html">아티스트 작품</a>
+</nav>
+<div id="desc">NAI ↔ 로컬/PixAI SDXL 프롬프트 문법 변환 · 가중치 정규화 · 아티스트 태그 처리</div>
+<div id="dirs">
+<button class="on" data-d="n2l">NAI → Local</button>
+<button data-d="l2n">Local → NAI</button>
+</div>
+<div id="main">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-size:calc(10px + var(--fs));color:var(--tx3)" id="dbst">DB 로드 중...</span>
+<button id="hbtn" style="font-size:calc(11px + var(--fs));padding:3px 10px;color:var(--tx3)">도움말</button>
+</div>
+<div id="help" class="bx">
+<h4>프롬프트 변환기</h4>
+NAI ↔ 로컬(A1111/Forge) 프롬프트 문법 상호 변환.
+<h4>방향</h4>
+<ul>
+<li><b>NAI → Local</b> : NAI 프롬프트를 로컬 형식으로 변환</li>
+<li><b>Local → NAI</b> : 로컬 프롬프트를 NAI 형식으로 변환</li>
+</ul>
+<h4>NAI 문법</h4>
+<ul>
+<li><code>{tag}</code> 강조 ×1.05 / <code>[tag]</code> 약화 ÷1.05 (겹칠수록 곱셈)</li>
+<li><code>1.5::tag ::</code> 수치 강조 (V4+)</li>
+<li><code>-1::tag ::</code> 음수 가중치 (V4.5+)</li>
+<li><code>artist:name</code> 아티스트 태그</li>
+</ul>
+<h4>로컬 문법</h4>
+<ul>
+<li><code>(tag:1.2)</code> 가중치 지정</li>
+<li><code>\(tag\)</code> 괄호 이스케이프</li>
+<li><code>@(name)</code> 또는 <code>@(name:1.1)</code> 아티스트 태그</li>
+</ul>
+<h4>아티스트 처리</h4>
+<ul>
+<li>NAI → Local : <code>artist:</code> 제거 후 이름만 또는 <code>@()</code>로 출력</li>
+<li>Local → NAI : CSV DB의 아티스트에 자동 <code>artist:</code> 부착</li>
+</ul>
+<h4>가중치 정규화 (NAI → Local)</h4>
+NAI는 가중치 높아도 잘 버티는데 로컬은 그대로 넣으면 그림이 깨질 수 있음. 정규화로 로컬에 맞게 줄여줌.
+<ul>
+<li><b>끔</b> : 가중치 그대로 변환</li>
+<li><b>고정 압축</b> : 모든 가중치를 일정 비율로 줄임. 압축률 낮을수록 더 세게 줄이고, 최대값 넘으면 잘라냄</li>
+<li><b>상대값</b> : 제일 높은 가중치를 목표값까지 내리고 나머지도 같은 비율로 따라감. 태그끼리 강약 비율은 유지</li>
+</ul>
+<h4>음수 가중치</h4>
+마이너스 가중치 토큰은 별도 영역에 분리 출력됨.
+</div>
+<div class="bx">
+<div class="or" id="art-r"></div>
+<div class="or" id="norm-r" style="margin-bottom:0">
+<span class="fl">정규화</span>
+<button data-nm="off" class="on">끔</button>
+<button data-nm="fixed">고정 압축</button>
+<button data-nm="rel">상대적</button>
+</div>
+<div class="nc" id="ncf">
+<label>압축률</label><input type="range" id="nfr" min="20" max="100" value="50"><span class="nv" id="nfv">0.50</span>
+<label style="margin-left:8px">최대값</label><input type="number" id="nfc" min="1.1" max="2" step="0.1" value="1.5">
+</div>
+<div class="nc" id="ncr">
+<label>목표값</label><input type="number" id="nrt" min="1.1" max="2" step="0.1" value="1.3">
+</div>
+</div>
+<div class="bx">
+<div class="ih"><span id="ilbl">NAI</span><button onclick="window.clr('inp')">지우기</button></div>
+<textarea id="inp" rows="4" placeholder="프롬프트 입력"></textarea>
+</div>
+<div id="acts">
+<button class="run" id="rbtn">변환</button>
+<span class="wn" id="warn"></span>
+</div>
+<div class="bx">
+<div class="ih"><span id="olbl">Local</span><button onclick="window.cpy('outp')">복사</button></div>
+<textarea id="outp" rows="4" readonly placeholder="변환 결과"></textarea>
+</div>
+<div class="bx" id="negbox" style="display:none">
+<div class="ih"><span>마이너스 가중치</span><button onclick="window.cpy('negout')">복사</button></div>
+<textarea id="negout" rows="2" readonly style="border-left:3px solid var(--red)" placeholder=""></textarea>
+<div class="neg-note">마이너스 가중치 별도 분리</div>
+</div>
+</div>
+</div>
+<div class="tt" id="tt"></div>
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fc6eda06bf1b423d98290d61546f75d5"}'></script>
+<!-- End Cloudflare Web Analytics -->
+<script>
+(function(){
+var CSV='danbooru_tags_classified.csv';
+var artistDB=new Set();
+var dir='n2l',artMode='remove',normMode='off';
+
+function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=ln[i];if(q){if(ch==='"'&&ln[i+1]==='"'){c+='"';i++}else if(ch==='"'){q=false}else{c+=ch}}else{if(ch==='"'){q=true}else if(ch===','){r.push(c);c=''}else{c+=ch}}}r.push(c);return r}
+
+async function loadDB(){try{var r=await fetch(CSV);var t=await r.text();var ls=t.split('\n');for(var i=1;i<ls.length;i++){var ln=ls[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length>=2&&+c[1]===1)artistDB.add(c[0].toLowerCase())}document.getElementById('dbst').textContent=artistDB.size+'명 로드됨'}catch(e){document.getElementById('dbst').textContent='DB 로드 실패'}}
+
+function toast(m){var e=document.getElementById('tt');e.textContent=m;e.classList.add('on');setTimeout(function(){e.classList.remove('on')},1400)}
+
+function fmt(n){var v=Math.round(n*100)/100;var s=v.toFixed(2);s=s.replace(/0+$/,'');if(s.endsWith('.'))s=s.slice(0,-1);return s}
+
+function escP(s){return s.replace(/\(/g,'\\(').replace(/\)/g,'\\)')}
+function unescP(s){return s.replace(/\\([()])/g,'$1')}
+function isArt(n){var k=n.replace(/_/g,' ').toLowerCase();return artistDB.has(k)||artistDB.has(n.toLowerCase())}
+
+function parseNaiTokens(text){
+var tokens=[],i=0;while(i<text.length){
+while(i<text.length&&(text[i]===' '||text[i]===','))i++;
+if(i>=text.length)break;
+var nm=text.slice(i).match(/^([+-]?\d+(?:\.\d+)?)::/);if(nm){
+var w=parseFloat(nm[1]);i+=nm[0].length;
+var ct='',fd=false;
+while(i<text.length&&!fd){
+if(text[i]===' '&&text.slice(i,i+3)===' ::'){i+=3;fd=true}
+else if(text.slice(i,i+2)==='::'){var af=text[i+2]||'';if(af===''||af===','||af===' '){i+=2;fd=true}else ct+=text[i++]}
+else ct+=text[i++]}
+if(ct.trim()){ct.split(',').forEach(function(p){p=p.trim();if(p)tokens.push({w:w,c:p})})}
+}else{
+var ct='',br=0,bk=0;
+while(i<text.length){
+var c=text[i];
+if(c==='{')br++;else if(c==='}'&&br>0)br--;
+else if(c==='[')bk++;else if(c===']'&&bk>0)bk--;
+if(text.slice(i,i+2)==='::'){var af=text[i+2]||'';if(af===''||af===','||af===' '){if(ct.trim())tokens.push({w:1,c:ct.trim()});i+=2;break}}
+if(c===','&&br===0&&bk===0){i++;break}
+if(br===0&&bk===0){var ah=text.slice(i).match(/^[+-]?\d+(?:\.\d+)?::/);if(ah&&ct.trim())break}
+ct+=c;i++}
+if(ct.trim())tokens.push({w:1,c:ct.trim()})}}
+return tokens}
+
+function stripBk(c){
+var w=1;while(c.startsWith('{')&&c.endsWith('}')){w*=1.05;c=c.slice(1,-1).trim()}
+while(c.startsWith('[')&&c.endsWith(']')){w/=1.05;c=c.slice(1,-1).trim()}
+var m=c.match(/^(\{+)/);if(m){for(var i=0;i<m[1].length;i++)w*=1.05;c=c.slice(m[1].length)}
+m=c.match(/(\}+)$/);if(m){for(var i=0;i<m[1].length;i++)w/=1.05;c=c.slice(0,-m[1].length)}
+m=c.match(/^(\[+)/);if(m){for(var i=0;i<m[1].length;i++)w/=1.05;c=c.slice(m[1].length)}
+m=c.match(/(\]+)$/);if(m){for(var i=0;i<m[1].length;i++)w*=1.05;c=c.slice(0,-m[1].length)}
+c=c.replace(/[{}\[\]]/g,'').trim();
+return{w:w,c:c}}
+
+function procNai(tk){
+var w=tk.w,c=tk.c,lo=c.toLowerCase();
+if(lo==='break'||lo==='and')return{c:c.toUpperCase(),w:1,art:false,sp:true};
+if(/^<(lora|lyco):[^>]+>$/i.test(c))return{c:c,w:1,art:false,sp:true};
+var bk=stripBk(c);w*=bk.w;c=bk.c;
+if(!c)return null;
+var am=c.match(/^artist\s*:\s*(.+)$/i);
+var name=am?am[1].trim():c;
+return{c:name,w:w,art:!!am||isArt(name),sp:false}}
+
+function norm(tokens){
+if(normMode==='off'||dir==='l2n')return tokens;
+if(normMode==='fixed'){
+var f=parseFloat(document.getElementById('nfr').value)/100;
+var cl=parseFloat(document.getElementById('nfc').value)||1.5;
+return tokens.map(function(t){if(t.sp)return t;
+var nw=1+(t.w-1)*f;if(nw>cl)nw=cl;if(nw<0.01)nw=0.01;
+return{c:t.c,w:nw,art:t.art,sp:false}})}
+if(normMode==='rel'){
+var tgt=parseFloat(document.getElementById('nrt').value)||1.3;
+var mx=0;
+tokens.forEach(function(t){if(!t.sp&&t.w>1){var d=t.w-1;if(d>mx)mx=d}});
+if(mx<0.01)return tokens;
+var f=(tgt-1)/mx;
+if(f>=1)return tokens;
+return tokens.map(function(t){if(t.sp)return t;
+return{c:t.c,w:1+(t.w-1)*f,art:t.art,sp:false}})}
+return tokens}
+
+function fmtLoc(t){
+if(t.sp)return t.c;
+var name=t.c.replace(/\s+/g,'_');
+var w=Math.round(t.w*100)/100;
+var hw=Math.abs(w-1)>=0.01;
+if(t.art&&artMode==='at')return hw?'@('+name+':'+fmt(w)+')':'@('+name+')';
+var en=escP(name);
+return hw?'('+en+':'+fmt(w)+')':en}
+
+function runN2L(){
+var inp=document.getElementById('inp').value.trim();
+var warns=[],posT=[],negT=[];
+if(inp){var raw=parseNaiTokens(inp);
+for(var i=0;i<raw.length;i++){var t=procNai(raw[i]);if(!t)continue;
+if(!t.sp&&t.w<0){t.w=Math.abs(t.w);negT.push(t)}else posT.push(t)}}
+if(negT.length)warns.push(negT.length+'개 마이너스 가중치 분리');
+posT=norm(posT);document.getElementById('outp').value=posT.map(fmtLoc).join(', ');
+if(negT.length){document.getElementById('negout').value=negT.map(function(t){
+if(t.sp)return t.c;var name=escP(t.c.replace(/\s+/g,'_'));
+var w=Math.round(t.w*100)/100;return'('+name+':-'+fmt(w)+')'}).join(', ');
+document.getElementById('negbox').style.display=''}
+else{document.getElementById('negout').value='';document.getElementById('negbox').style.display='none'}
+document.getElementById('warn').textContent=warns.join(' · ')}
+
+function parseLocTokens(text){var tokens=[],cur='',pr=0;
+for(var i=0;i<text.length;i++){var c=text[i];
+if(c==='\\'&&i+1<text.length){if(text[i+1]==='\\'){cur+='\\\\';i++;continue}if(text[i+1]==='('||text[i+1]===')'){cur+=c+text[++i];continue}}
+if(c==='(')pr++;else if(c===')'&&pr>0)pr--;
+if(c===','&&pr===0){if(cur.trim())tokens.push(cur.trim());cur=''}else cur+=c}
+if(cur.trim())tokens.push(cur.trim());return tokens}
+
+function procLoc(tk){
+var lo=tk.toLowerCase();
+if(lo==='break'||lo==='and')return{c:tk.toUpperCase(),w:1,art:false,sp:true};
+if(/^<(lora|lyco):[^>]+>$/i.test(tk))return{c:tk,w:1,art:false,sp:true};
+var am=tk.match(/^@\((.+)\)$/);
+if(am){var inner=am[1];var wm=inner.match(/^(.+):([+-]?\d+(?:\.\d+)?)$/);
+var name=(wm?wm[1]:inner).trim();var w=wm?parseFloat(wm[2]):1;
+return{c:name,w:w,art:true,sp:false}}
+if(tk.startsWith('(')&&tk.endsWith(')')){var inner=tk.slice(1,-1);var depth=0;
+for(var j=inner.length-1;j>0;j--){var ch=inner[j],pv=j>0?inner[j-1]:'';
+if(ch===')'&&pv!=='\\')depth++;else if(ch==='('&&pv!=='\\')depth--;
+else if(ch===':'&&depth===0){var ct=inner.slice(0,j).trim();var wv=parseFloat(inner.slice(j+1));
+if(ct&&Number.isFinite(wv)){ct=unescP(ct);return{c:ct,w:wv,art:isArt(ct),sp:false}}break}}}
+var clean=unescP(tk);
+var artM=clean.match(/^artist\s*:\s*(.+)$/i);
+if(artM)return{c:artM[1].trim(),w:1,art:true,sp:false};
+return{c:clean,w:1,art:isArt(clean),sp:false}}
+
+function toNaiW(w,ct){
+var log=Math.log(w)/Math.log(1.05);var n=Math.round(log);
+if(Math.abs(n-log)<0.05&&Math.abs(n)<=10&&n!==0){
+if(n>0)return'{'.repeat(n)+ct+'}'.repeat(n);
+if(n<0)return'['.repeat(-n)+ct+']'.repeat(-n)}
+return fmt(w)+'::'+ct+' ::'}
+
+function fmtNai(t){
+if(t.sp)return t.c;var name=t.c.replace(/_/g,' ');
+if(t.art)name='artist:'+name;
+var w=Math.round(t.w*100)/100;var hw=Math.abs(w-1)>=0.01;
+return hw?toNaiW(w,name):name}
+
+function runL2N(){
+var inp=document.getElementById('inp').value.trim();
+var posR=[],negR=[];
+if(inp){var tks=parseLocTokens(inp);for(var i=0;i<tks.length;i++){var t=procLoc(tks[i]);if(!t)continue;
+if(!t.sp&&t.w<0){negR.push(t)}else posR.push(t)}}
+document.getElementById('outp').value=posR.map(fmtNai).join(', ');
+if(negR.length){document.getElementById('negout').value=negR.map(function(t){
+var name=t.c.replace(/_/g,' ');if(t.art)name='artist:'+name;
+var aw=Math.abs(t.w);return'-'+fmt(aw)+'::'+name+' ::'}).join(', ');
+document.getElementById('negbox').style.display=''}
+else{document.getElementById('negout').value='';document.getElementById('negbox').style.display='none'}
+document.getElementById('warn').textContent=''}
+
+function setDir(d){
+dir=d;
+document.querySelectorAll('#dirs button').forEach(function(b){b.classList.toggle('on',b.dataset.d===d)});
+var n=d==='n2l';
+document.getElementById('ilbl').textContent=n?'NAI':'Local';
+document.getElementById('olbl').textContent=n?'Local':'NAI';
+document.getElementById('norm-r').style.display=n?'':'none';
+document.getElementById('ncf').classList.toggle('v',n&&normMode==='fixed');
+document.getElementById('ncr').classList.toggle('v',n&&normMode==='rel');
+document.getElementById('negbox').style.display='none';document.getElementById('negout').value='';
+renderArt()}
+
+function renderArt(){
+var r=document.getElementById('art-r');
+if(dir==='n2l'){r.innerHTML='<span class="fl">아티스트</span><button data-at="remove"'+(artMode==='remove'?' class="on"':'')+'>이름만</button><button data-at="at"'+(artMode==='at'?' class="on"':'')+'>@() 변환</button>'}
+else{r.innerHTML='<span class="fl">아티스트</span><span style="font-size:calc(10px + var(--fs));color:var(--tx3)">DB 아티스트에 자동 artist: 부착</span>'}}
+
+window.clr=function(id){document.getElementById(id).value=''};
+window.cpy=function(id){var v=document.getElementById(id).value;if(!v){toast('비어있음');return}navigator.clipboard.writeText(v).then(function(){toast('복사됨')})};
+
+document.getElementById('dirs').addEventListener('click',function(e){var b=e.target.closest('button');if(b&&b.dataset.d)setDir(b.dataset.d)});
+document.getElementById('art-r').addEventListener('click',function(e){var b=e.target.closest('button[data-at]');if(!b)return;artMode=b.dataset.at;renderArt()});
+document.getElementById('norm-r').addEventListener('click',function(e){var b=e.target.closest('button[data-nm]');if(!b)return;normMode=b.dataset.nm;document.querySelectorAll('#norm-r button').forEach(function(x){x.classList.toggle('on',x.dataset.nm===normMode)});document.getElementById('ncf').classList.toggle('v',normMode==='fixed');document.getElementById('ncr').classList.toggle('v',normMode==='rel')});
+document.getElementById('nfr').addEventListener('input',function(){document.getElementById('nfv').textContent=(this.value/100).toFixed(2)});
+document.getElementById('hbtn').addEventListener('click',function(){document.getElementById('help').classList.toggle('v')});
+document.getElementById('rbtn').addEventListener('click',function(){if(dir==='n2l')runN2L();else runL2N()});
+
+setDir('n2l');loadDB();
+})();
+</script>
+</body>
+</html>
