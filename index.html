@@ -223,7 +223,7 @@ obs.observe(document.getElementById('sentinel'));
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('q').value='';shown=200;render();document.getElementById('q').focus()}});
 syncCfg();updateBar();
 }
-async function init(){load();applyFs();try{var r=await Promise.all([fetch(CSV).then(function(r){return r.text()}),fetch(TAXF).then(function(r){return r.json()}).catch(function(){return{}})]);tax=r[1]||{};var lines=r[0].split('\n');for(var i=1;i<lines.length;i++){var ln=lines[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length<4)continue;var p=parseDesc(c[3]);all.push({n:c[0],cat:+c[1],cnt:+c[2],p:p,s:(c[0]+' '+p.tx+' '+p.kw.join(' ')).toLowerCase()})}}catch(e){document.getElementById('info').textContent='데이터 로드 실패';return}buildCats();renderCol();render();document.getElementById('info').textContent=all.length+'개';setup()}
+async function init(){load();applyFs();try{var r=await Promise.all([fetch(CSV).then(function(r){return r.text()}),fetch(TAXF).then(function(r){return r.json()}).catch(function(){return{}})]);tax=r[1]||{};var lines=r[0].split('\n');for(var i=1;i<lines.length;i++){var ln=lines[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length<4)continue;var p=parseDesc(c[3]);var raw=c[0]+' '+p.tx+' '+p.kw.join(' ');all.push({n:c[0],cat:+c[1],cnt:+c[2],p:p,s:(raw+' '+raw.replace(/\s/g,'')).toLowerCase()})}}catch(e){document.getElementById('info').textContent='데이터 로드 실패';return}buildCats();renderCol();render();document.getElementById('info').textContent=all.length+'개';setup()}
 init();
 })();
 </script>
