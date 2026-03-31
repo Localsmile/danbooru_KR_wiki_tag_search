@@ -6,9 +6,9 @@
 <title>프롬프트 변환</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0c0c0c;--s1:#131313;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;--bd:#252525;--tx:#bbb;--tx2:#777;--tx3:#444;--ac:#6e9aff;--acd:#1a3060;--red:#c55;--r:5px;--fs:0px}
+:root{--bg:#0c0c0c;--s1:#131313;--s2:#1a1a1a;--s3:#222;--s4:#2a2a2a;--bd:#252525;--tx:#bbb;--tx2:#777;--tx3:#444;--ac:#6e9aff;--acd:#1a3060;--red:#c55;--r:5px;--fs:2px}
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;font-size:calc(14px + var(--fs));-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;font-size:calc(16px + var(--fs));-webkit-tap-highlight-color:transparent}
 input,select,button,textarea{font:inherit;color:var(--tx);background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);outline:none}
 input:focus,textarea:focus{border-color:var(--ac)}
 button{cursor:pointer;padding:5px 11px;transition:all .12s;white-space:nowrap}
@@ -30,15 +30,15 @@ textarea{resize:vertical;padding:10px 12px;min-height:56px;font-size:calc(13px +
 .bx{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
 .or{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 .or:last-child{margin-bottom:0}
-.fl{color:var(--tx2);font-size:calc(11px + var(--fs));flex-shrink:0}
-.or button{font-size:calc(11px + var(--fs));padding:3px 8px;color:var(--tx2)}
+.fl{color:var(--tx2);font-size:calc(13px + var(--fs));flex-shrink:0}
+.or button{font-size:calc(13px + var(--fs));padding:5px 12px;color:var(--tx2)}
 .or button.on{background:var(--acd);border-color:var(--ac);color:#cde}
 .nc{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0 0}
 .nc.v{display:flex}
-.nc label{font-size:calc(10px + var(--fs));color:var(--tx3)}
-.nc input[type="range"]{width:100px;accent-color:var(--ac)}
-.nc input[type="number"]{width:55px;padding:2px 5px;font-size:calc(11px + var(--fs));text-align:center;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx)}
-.nv{font-size:calc(11px + var(--fs));color:var(--ac);min-width:28px}
+.nc label{font-size:calc(12px + var(--fs));color:var(--tx3)}
+.nc input[type="range"]{width:120px;accent-color:var(--ac)}
+.nc input[type="number"]{width:60px;padding:3px 6px;font-size:calc(13px + var(--fs));text-align:center;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);color:var(--tx)}
+.nv{font-size:calc(13px + var(--fs));color:var(--ac);min-width:32px}
 .ih{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .ih span{font-size:calc(11px + var(--fs));color:var(--tx2)}
 .ih button{font-size:calc(10px + var(--fs));padding:2px 8px}
@@ -62,8 +62,8 @@ textarea{resize:vertical;padding:10px 12px;min-height:56px;font-size:calc(13px +
 #nav a{padding:5px 8px;font-size:calc(11px + var(--fs))}
 #dirs button{padding:6px;font-size:calc(12px + var(--fs))}
 .bx{padding:8px 10px}
-.or button{padding:3px 6px;font-size:calc(10px + var(--fs))}
-.nc input[type="range"]{width:80px}
+.or button{padding:4px 8px;font-size:calc(11px + var(--fs))}
+.nc input[type="range"]{width:100px}
 }
 </style>
 </head>
@@ -103,11 +103,11 @@ NAI ↔ 로컬(A1111/Forge) 프롬프트 문법 상호 변환.
 <ul>
 <li><code>(tag:1.2)</code> 가중치 지정</li>
 <li><code>\(tag\)</code> 괄호 이스케이프</li>
-<li><code>@(name)</code> 또는 <code>@(name:1.1)</code> 아티스트 태그</li>
+<li><code>@(name)</code> 아티스트 태그 (anima 모델 한정, 필수 아님)</li>
 </ul>
 <h4>아티스트 처리</h4>
 <ul>
-<li>NAI → Local : <code>artist:</code> 제거 후 이름만 또는 <code>@()</code>로 출력</li>
+<li>NAI → Local : <code>artist:</code> 제거 후 이름만 또는 <code>@()</code>로 출력 (anima용)</li>
 <li>Local → NAI : CSV DB의 아티스트에 자동 <code>artist:</code> 부착</li>
 </ul>
 <h4>가중치 정규화 (NAI → Local)</h4>
@@ -126,7 +126,7 @@ NAI는 가중치 높아도 잘 버티는데 로컬은 그대로 넣으면 그림
 <span class="fl">정규화</span>
 <button data-nm="off" class="on">끔</button>
 <button data-nm="fixed">고정 압축</button>
-<button data-nm="rel">상대적</button>
+<button data-nm="rel">상대값</button>
 </div>
 <div class="nc" id="ncf">
 <label>압축률</label><input type="range" id="nfr" min="20" max="100" value="50"><span class="nv" id="nfv">0.50</span>
