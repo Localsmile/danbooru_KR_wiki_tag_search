@@ -249,7 +249,8 @@ var PROXIES=[
 var pxIdx=-1;
 var imgCache=new Map();
 var isMobile=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-var isTouch=isMobile;
+var hasHover=!!(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches);
+var isTouch=isMobile&&!hasHover;
 var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
