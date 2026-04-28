@@ -113,9 +113,9 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 <h4>패치노트</h4>
 <h5>v1.1 — 2026.04.29</h5>
 <ul>
-<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성), 다크 톤 정비</li>
+<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성, 다크 톤 정비</li>
 <li>프록시 체인 변경: corsproxy.io → codetabs → allorigins 자동 폴백</li>
-<li>이미지 프록시 Cloudflare 백본 적용</li>
+<li>이미지 프록시 다단 폴백 (direct → wsrv → statically → corsproxy)</li>
 <li>프롬프트 변환/아티스트 작품 태그 파싱 엣지 케이스 수정</li>
 <li>프롬프트 변환 도움말 개선</li>
 <li>CSV 24시간 로컬 캐시, 모든 페이지 공유</li>
@@ -145,8 +145,11 @@ var results=[];
 var reqSeq=0;
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function proxyImg(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')}
-function imgErr(img){if(!img.dataset.px){img.dataset.px='1';img.src=proxyImg(img.dataset.src0);return}img.replaceWith(document.createTextNode('이미지 로드 실패'))}
+var IMG_PXS=[function(u){return u},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PX_NAMES=['direct','wsrv','statically','corsproxy'];
+var imgPxStart=0;
+function imgSrc(u){return IMG_PXS[imgPxStart](u)}
+function imgErr(img){var i=parseInt(img.dataset.pxi||String(imgPxStart),10)+1;if(i>=IMG_PXS.length){img.replaceWith(document.createTextNode('이미지 로드 실패'));return}img.dataset.pxi=String(i);if(i>imgPxStart){imgPxStart=i;var pn=document.getElementById('status');if(pn&&!/이미지/.test(pn.textContent))pn.innerHTML+=' <span class="px">· 이미지 '+IMG_PX_NAMES[i]+'</span>'}img.src=IMG_PXS[i](img.dataset.src0)}
 window.imgErr=imgErr
 function toast(m){var e=document.getElementById('tt');e.textContent=m;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){e.classList.remove('on')},1400)}
 function setStatus(t){document.getElementById('status').innerHTML=t+(pxName?' <span class="px">· 프록시 '+pxName+'</span>':'')}
@@ -159,24 +162,41 @@ function splitTop(text){var out=[],cur='',pr=0;for(var i=0;i<text.length;i++){va
 function hasOuterWrap(s){if(!(s[0]==='('&&s[s.length-1]===')'))return false;var d=0;for(var i=0;i<s.length;i++){var c=s[i];if(c==='\\'){i++;continue}if(c==='(')d++;else if(c===')'){d--;if(d===0&&i<s.length-1)return false;if(d<0)return false}}return d===0}
 function stripOuter(t){var changed=true;while(changed){changed=false;t=t.trim();if(t[0]==='@'){t=t.slice(1).trim();changed=true}if(t[0]==='('&&t[t.length-1]===')'&&hasOuterWrap(t)){t=t.slice(1,-1).trim();changed=true}}return t}
 function stripTailWeight(t){var cut=-1,d=0;for(var i=0;i<t.length;i++){var c=t[i];if(c==='\\'){i++;continue}if(c==='(')d++;else if(c===')'&&d>0)d--;else if(c===':'&&d===0)cut=i}if(cut>0){var tail=t.slice(cut+1).trim();if(/^[+-]?\d+(?:\.\d+)?$/.test(tail))return t.slice(0,cut).trim()}return t}
-function canonName(t){t=String(t||'').trim().replace(/^["']|["']$/g,'');if(!t)return'';t=t.replace(/^artist\s*:\s*/i,'').trim();t=stripOuter(t);t=stripTailWeight(t);t=t.replace(/\\([()])/g,'$1').replace(/[{}[\]]/g,'').trim();t=t.replace(/^@+/,'').replace(/^artist\s*:\s*/i,'').trim();t=t.replace(/[,]+$/,'').trim();if(!t||/^(break|and)$/i.test(t)||/^<[^>]+>$/.test(t))return'';return t.replace(/\s+/g,'_').toLowerCase()}
-function addCanon(arr,seen,n){n=canonName(n);if(n&&!seen[n]){seen[n]=1;arr.push(n)}}
-function isExplicitArtistToken(t){t=t.trim();return /^@/.test(t)||/^artist\s*:/i.test(t)}
-function extractArtists(text){var found=[],seen={},tokens=splitTop(text),explicit=false;
-tokens.forEach(function(t){if(isExplicitArtistToken(t)){explicit=true;addCanon(found,seen,t)}});
-if(found.length||explicit)return found;
-tokens.forEach(function(t){var n=canonName(t);if(n&&artistDB.has(n)&&!seen[n]){seen[n]=1;found.push(n)}});
-if(found.length)return found;
-tokens.forEach(function(t){addCanon(found,seen,t)});
+function canonName(t){t=String(t||'').trim().replace(/^["']|["']$/g,'');if(!t)return'';t=t.replace(/^[+-]?\d+(?:\.\d+)?::/,'').replace(/\s*::\s*$/,'').trim();t=t.replace(/^artist\s*:\s*/i,'').trim();t=stripOuter(t);t=stripTailWeight(t);t=t.replace(/\\([()])/g,'$1').replace(/[{}[\]]/g,'').trim();t=t.replace(/^@+/,'').replace(/^artist\s*:\s*/i,'').trim();t=t.replace(/[,:]+$/,'').replace(/^:+/,'').trim();if(!t||/^(break|and)$/i.test(t)||/^<[^>]+>$/.test(t))return'';return t.replace(/\s+/g,'_').toLowerCase()}
+function parseNaiFlat(text){var out=[],i=0;while(i<text.length){
+while(i<text.length&&(text[i]===' '||text[i]===','))i++;
+if(i>=text.length)break;
+var nm=text.slice(i).match(/^([+-]?\d+(?:\.\d+)?)::/);
+if(nm){i+=nm[0].length;var ct='',fd=false;
+while(i<text.length&&!fd){
+if(text[i]===' '&&text.slice(i,i+3)===' ::'){i+=3;fd=true}
+else if(text.slice(i,i+2)==='::'){var af=text[i+2]||'';if(af===''||af===','||af===' '){i+=2;fd=true}else ct+=text[i++]}
+else ct+=text[i++]}
+if(ct){ct.split(',').forEach(function(p){p=p.trim();if(p)out.push(p)})}
+}else{var ct='',br=0,bk=0;
+while(i<text.length){var c=text[i];
+if(c==='{')br++;else if(c==='}'&&br>0)br--;
+else if(c==='[')bk++;else if(c===']'&&bk>0)bk--;
+if(text.slice(i,i+2)==='::'){var af=text[i+2]||'';if(af===''||af===','||af===' '){if(ct.trim())out.push(ct.trim());i+=2;break}}
+if(c===','&&br===0&&bk===0){i++;break}
+if(br===0&&bk===0){var ah=text.slice(i).match(/^[+-]?\d+(?:\.\d+)?::/);if(ah&&ct.trim())break}
+ct+=c;i++}
+if(ct.trim())out.push(ct.trim())}}
+return out}
+function isExplicitArtistToken(t){t=String(t||'').trim().replace(/^[+-]?\d+(?:\.\d+)?::/,'').trim();return /^@/.test(t)||/^artist\s*:/i.test(t)}
+function extractArtists(text){var found=[],seen={};
+var tokens=parseNaiFlat(text);
+if(!tokens.length)tokens=splitTop(text);
+tokens.forEach(function(t){var explicit=isExplicitArtistToken(t);var n=canonName(t);if(!n||seen[n])return;if(explicit||artistDB.has(n)){seen[n]=1;found.push(n)}});
 return found}
 
 async function dFetch(path){var url=DAPI+path;if(pxIdx<0){try{var r=await fetch(url);if(r.ok)return r;throw new Error('http '+r.status)}catch(e){pxIdx=0}}
 for(var i=Math.max(0,pxIdx);i<PROXIES.length;i++){try{var r=await fetch(PROXIES[i].build(url));if(r.ok){pxIdx=i;pxName=PROXIES[i].name;return r}}catch(e){}}
 throw new Error('fetch failed')}
 
-async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=12');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){var iu=p.large_file_url||p.preview_file_url;if(iu&&imgs.length<12)imgs.push({u:iu,id:p.id,score:p.score||0,rating:(p.rating||'').toUpperCase()})});return imgs}catch(e){return[]}}
+async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=6');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){var iu=p.large_file_url||p.preview_file_url;if(iu&&imgs.length<6)imgs.push({u:iu,id:p.id,score:p.score||0,rating:(p.rating||'').toUpperCase()})});return imgs}catch(e){return[]}}
 
-function renderTable(){var box=document.getElementById('artistResults'),info=document.getElementById('info');if(!results.length){box.innerHTML='';info.textContent='프롬프트 입력 후 추출';return}info.textContent='';var h='';results.forEach(function(a){h+='<section class="asec"><div class="ah"><a href="'+DAPI+'/posts?tags='+encodeURIComponent(a.name)+'" target="_blank" rel="noopener">'+esc(a.name)+'</a>';if(a.status==='loading')h+='<span class="asub">로드 중</span>';else h+='<span class="asub">'+a.imgs.length+'개</span>';h+='</div>';if(a.status==='loading'){h+='<span class="al">이미지 로드 중...</span>'}else if(!a.imgs.length){h+='<span class="ae">결과 없음</span>'}else{h+='<div class="agrid">';a.imgs.forEach(function(im){h+='<a class="acard" href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(im.u)+'" data-src0="'+esc(im.u)+'" alt="" loading="lazy" decoding="async" onerror="imgErr(this)"><div class="ameta"><span>★ '+im.score+'</span><span>'+im.rating+'</span></div></a>'});h+='</div>'}h+='</section>'});box.innerHTML=h}
+function renderTable(){var box=document.getElementById('artistResults'),info=document.getElementById('info');if(!results.length){box.innerHTML='';info.textContent='프롬프트 입력 후 추출';return}info.textContent='';var h='';results.forEach(function(a){h+='<section class="asec"><div class="ah"><a href="'+DAPI+'/posts?tags='+encodeURIComponent(a.name)+'" target="_blank" rel="noopener">'+esc(a.name)+'</a>';if(a.status==='loading')h+='<span class="asub">로드 중</span>';else h+='<span class="asub">'+a.imgs.length+'개</span>';h+='</div>';if(a.status==='loading'){h+='<span class="al">이미지 로드 중...</span>'}else if(!a.imgs.length){h+='<span class="ae">결과 없음</span>'}else{h+='<div class="agrid">';a.imgs.forEach(function(im){h+='<a class="acard" href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(imgSrc(im.u))+'" data-src0="'+esc(im.u)+'" data-pxi="'+imgPxStart+'" alt="" loading="lazy" decoding="async" onerror="imgErr(this)"><div class="ameta"><span>★ '+im.score+'</span><span>'+im.rating+'</span></div></a>'});h+='</div>'}h+='</section>'});box.innerHTML=h}
 window.pv=function(){};
 
 async function run(){var text=document.getElementById('prompt').value.trim();if(!text){setStatus('프롬프트 입력 필요');return}var names=extractArtists(text);if(!names.length){setStatus('아티스트 없음');results=[];renderTable();document.getElementById('info').textContent='아티스트 없음';return}var seq=++reqSeq;setStatus(names.length+'명 추출');results=names.map(function(n){return{name:n,imgs:[],idx:0,status:'loading'}});renderTable();await Promise.all(results.map(async function(r){r.imgs=await fetchImages(r.name);r.status='done';if(seq===reqSeq)renderTable()}));if(seq===reqSeq)setStatus(names.length+'명 완료')}
