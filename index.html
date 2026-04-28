@@ -37,9 +37,9 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible,input:focus-v
 #q::placeholder{color:var(--tx4)}
 #qclr{flex-shrink:0;padding:7px 11px;font-size:calc(13px + var(--fs));color:var(--tx2);display:none}
 #qclr.v{display:inline-block}
-#cats{display:flex;gap:5px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+#cats{display:flex;gap:5px;overflow:visible;flex-wrap:wrap;padding-bottom:2px}
 #cats::-webkit-scrollbar{display:none}
-#cats span{padding:5px 13px;border-radius:14px;background:var(--s2);border:1px solid transparent;cursor:pointer;font-size:calc(13px + var(--fs));user-select:none;transition:background .12s,border-color .12s,color .12s;flex-shrink:0;line-height:1.3}
+#cats span{padding:4px 10px;border-radius:14px;background:var(--s2);border:1px solid transparent;cursor:pointer;font-size:calc(12px + var(--fs));user-select:none;transition:background .12s,border-color .12s,color .12s;flex:0 0 auto;line-height:1.25}
 #cats span:hover{border-color:var(--s4)}
 #cats span.on{background:var(--acd);border-color:var(--ac);color:#cde}
 #subp{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px;display:none}
@@ -90,6 +90,14 @@ th{position:sticky;top:0;background:var(--s2);padding:7px 10px;text-align:left;f
 td{padding:6px 10px;border-bottom:1px solid #151515;vertical-align:top}
 tr.r:hover td{background:var(--s2)}
 tr.r{cursor:pointer;transition:background .08s}
+tr.r td:first-child{border-left:3px solid transparent}
+tr.r[data-c="0"] td:first-child{border-left-color:var(--c0)}
+tr.r[data-c="1"] td:first-child{border-left-color:var(--c1)}
+tr.r[data-c="2"] td:first-child{border-left-color:var(--c2);border-left-style:double}
+tr.r[data-c="3"] td:first-child{border-left-color:var(--c3)}
+tr.r[data-c="4"] td:first-child{border-left-color:var(--c4)}
+tr.r[data-c="5"] td:first-child{border-left-color:var(--c5)}
+tr.r[data-c="-1"] td:first-child{border-left-color:var(--cx);border-left-style:dashed}
 tr.r:active td,tr.r.lp td{background:var(--s3)}
 .tc{min-width:120px}
 .nm{font-weight:700;font-family:'SF Mono',Consolas,'Courier New',monospace;white-space:nowrap;font-size:calc(13px + var(--fs))}
@@ -133,6 +141,25 @@ tr.r{-webkit-user-select:none;user-select:none}
 @media(hover:none){
 #nav a:hover{background:transparent}
 }
+#ftr{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding:5px 2px 0;font-size:calc(10px + var(--fs));color:var(--tx4);flex-shrink:0;border-top:1px solid var(--bd);margin-top:2px}
+#ftr .v{color:var(--tx3)}
+#ftr button{background:none;border:none;color:var(--tx3);cursor:pointer;padding:2px 8px;font-size:inherit;border-radius:3px}
+#ftr button:hover{color:var(--ac);background:var(--s2)}
+.mdl{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.mdl.v{display:flex}
+.mdl-bd{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);max-width:540px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.6)}
+.mdl-h{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--bd);font-size:calc(13px + var(--fs));color:var(--tx);font-weight:600}
+.mdl-h button{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:calc(15px + var(--fs));padding:0 4px}
+.mdl-h button:hover{color:var(--tx)}
+.mdl-c{padding:14px 18px;overflow-y:auto;line-height:1.65;color:var(--tx2);font-size:calc(12px + var(--fs))}
+.mdl-c h4{color:var(--tx);font-size:calc(13px + var(--fs));margin:14px 0 4px;font-weight:600}
+.mdl-c h4:first-child{margin-top:0}
+.mdl-c h5{color:var(--ac);font-size:calc(11px + var(--fs));margin:8px 0 3px;font-weight:600}
+.mdl-c p{margin:0 0 6px}
+.mdl-c ul{padding-left:18px;margin:2px 0 8px}
+.mdl-c li{font-size:calc(11px + var(--fs));margin:2px 0;line-height:1.55}
+.mdl-c a{color:var(--ac);word-break:break-all}
+.mdl-c .nt{color:var(--tx4);font-size:calc(10px + var(--fs));font-style:italic;margin-top:6px}
 </style>
 </head>
 <body>
@@ -153,7 +180,7 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div id="optBody">
 <div class="row">
 <div class="md grp"><span class="fl">동작</span><button id="qkb" type="button" aria-pressed="true">바로 복사</button><button id="pkb" type="button" aria-pressed="false">추가/제거</button></div>
-<div class="md grp"><span class="fl">미리보기</span><button id="pvb" type="button" aria-pressed="true">켜기</button><span class="md-desc">호버/길게 누르기</span></div>
+<div class="md grp"><span class="fl">이미지 예시보기</span><button id="pvb" type="button" aria-pressed="true">켜기</button><span class="md-desc">호버/길게 누르기</span></div>
 </div>
 <div class="row">
 <div class="grp" id="fmtA"><span class="fl">아티스트</span><button data-a="" type="button">없음</button><button data-a="@" type="button">@</button><button data-a="artist:" type="button">artist:</button></div>
@@ -162,7 +189,7 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div class="grp" id="fmtS"><span class="fl">구분자</span><button data-s="cs" type="button">,</button><button data-s="nl" type="button">↵</button></div>
 <div class="fsz grp"><span class="fl" style="margin-right:6px">글자</span><button id="fsm" type="button" aria-label="글자 작게">A-</button><span id="fsv">18</span><button id="fsp" type="button" aria-label="글자 크게">A+</button></div>
 </div>
-<div id="note">2026.03.23 기준 · 카운트 100 이상 번역</div>
+<div id="note">2026.03.23 단부루 기준 · 카운트 100 이상 번역</div>
 </div>
 </details>
 <div id="col">
@@ -175,8 +202,33 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div id="sentinel" style="height:1px"></div>
 <div id="info">데이터 불러오는 중...</div>
 </div>
-</div>
 <div id="pv" role="dialog" aria-label="미리보기"></div>
+<footer id="ftr"><span class="v">로컬AI</span><span>·</span><span>v2.0</span><span>·</span><button id="infoBtn" type="button" aria-haspopup="dialog">정보</button></footer>
+</div>
+<div class="mdl" id="aboutMdl" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+<div class="mdl-bd">
+<div class="mdl-h"><span id="infoTitle">정보</span><button id="infoClose" type="button" aria-label="닫기">✕</button></div>
+<div class="mdl-c">
+<h4>이거 만든 놈</h4>
+<p>로컬AI</p>
+<h4>추천 도구</h4>
+<p><a href="https://github.com/Localsmile/danbooru-tag-selector-KR-wiki/raw/refs/heads/main/danbooru-tag-selector.user.js" target="_blank" rel="noopener">Danbooru 태그 선택기 (KR Wiki)</a> — Tampermonkey용 단부루 태그 복사 도구</p>
+<h4>패치노트</h4>
+<h5>v1.0 — 2026.04.29</h5>
+<ul>
+<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성), 다크 톤 정비</li>
+<li>프록시 체인 변경: corsproxy.io → codetabs → allorigins 자동 폴백</li>
+<li>이미지 프록시 Cloudflare 백본 적용</li>
+<li>프롬프트 변환/아티스트 작품 태그 파싱 엣지 케이스 수정</li>
+<li>프롬프트 변환 도움말 개선</li>
+<li>CSV 24시간 로컬 캐시, 모든 페이지 공유</li>
+<li>viewport 확대 차단 해제, 키보드 네비게이션 지원</li>
+<li>아티스트 페이지: URL 동기화, 자동완성 강화, 이미지 lazy/async</li>
+</ul>
+
+</div>
+</div>
+</div>
 <div class="tt" id="tt" role="status" aria-live="polite"></div>
 <!-- Cloudflare Web Analytics -->
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fc6eda06bf1b423d98290d61546f75d5"}'></script>
@@ -201,7 +253,10 @@ var isTouch=isMobile;
 var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function proxyImg(u){return pxIdx>=0?'https://wsrv.nl/?url='+encodeURIComponent(u):u}
+function wsrvImg(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')}
+function proxyImg(u){return pxIdx>=0?wsrvImg(u):u}
+function previewImgErr(img){if(!img.dataset.px){img.dataset.px='1';img.src=wsrvImg(img.dataset.src0||img.src);return}img.style.display='none'}
+window.previewImgErr=previewImgErr
 function getSep(){return cfg.sep==='nl'?'\n':', '}
 function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=ln[i];if(q){if(ch==='"'&&ln[i+1]==='"'){c+='"';i++}else if(ch==='"'){q=false}else{c+=ch}}else{if(ch==='"'){q=true}else if(ch===','){r.push(c);c=''}else{c+=ch}}}r.push(c);return r}
 function parseDesc(d){var o={mj:'',mn:'',tx:'',kw:[]};if(!d)return o;var m=d.match(/^\[(.+?)\s*>\s*(.+?)\]\s*/);if(m){o.mj=m[1].trim();o.mn=m[2].trim();d=d.slice(m[0].length)}var ki=d.lastIndexOf('키워드:');if(ki!==-1){o.tx=d.slice(0,ki).replace(/\.\s*$/,'').trim();o.kw=d.slice(ki+4).split(',').map(function(s){return s.trim()}).filter(Boolean)}else{o.tx=d.trim()}return o}
@@ -214,8 +269,8 @@ function load(){try{var c=localStorage.getItem('dt-cfg');if(c){var p=JSON.parse(
 function scoreM(name,q){if(name===q)return 0;var p=name.split('_');for(var i=0;i<p.length;i++){if(p[i]===q)return 1}if(name.indexOf(q)!==-1)return 2;return 3}
 function filter(){var t=all;if(mj){t=t.filter(function(x){return x.p.mj===mj});if(mn)t=t.filter(function(x){return x.p.mn===mn})}var q=document.getElementById('q').value.trim().toLowerCase();if(q){var w=q.split(/\s+/);t=t.filter(function(x){return w.every(function(s){return x.s.indexOf(s)!==-1})});t.forEach(function(x){var nm=x.n.toLowerCase();x._sc=w.reduce(function(m,s){return Math.max(m,scoreM(nm,s))},0)});return t.sort(function(a,b){return a._sc!==b._sc?a._sc-b._sc:b.cnt-a.cnt})}return t.sort(function(a,b){return b.cnt-a.cnt})}
 function updateBar(){var b=cfg.quick?'클릭: 즉시 복사':'클릭: 추가 / 다시 클릭: 제거';if(cfg.preview&&isTouch)b+=' · 길게 누르면 미리보기';document.getElementById('barTxt').textContent=b}
-function updateStl(){var s=[];if(cfg.art)s.push('artist '+(cfg.art==='@'?'@':'artist:'));s.push(cfg.space?'a b':'a_b');if(cfg.pesc)s.push('\\()');s.push(cfg.sep==='nl'?'↵':',');s.push(cfg.fs+'px');document.getElementById('stl').textContent=s.join(' · ')}
-function render(){var rd=document.getElementById('res'),st=rd.scrollTop;var tags=filter();lastTotal=tags.length;var sl=tags.slice(0,shown);var tb=document.getElementById('tb');var frag=document.createDocumentFragment();for(var i=0;i<sl.length;i++){var t=sl[i],pk=!cfg.quick&&has(pos,t.n);var tr=document.createElement('tr');tr.className='r'+(pk?' pk':'');tr.dataset.n=t.n;tr.dataset.c=t.cat;var td1=document.createElement('td');td1.className='tc';var nh='<span class="nm">'+esc(t.n)+'</span> <span class="ct">('+fmt(t.cnt)+')</span>';if(t.p.kw.length)nh+='<div class="kw">'+t.p.kw.map(esc).join(' · ')+'</div>';td1.innerHTML=nh;var td2=document.createElement('td');td2.className='ds';var dh='';if(t.p.mj)dh+='<span class="c">['+esc(t.p.mj)+' &gt; '+esc(t.p.mn)+']</span> ';dh+=esc(t.p.tx);td2.innerHTML=dh;tr.appendChild(td1);tr.appendChild(td2);frag.appendChild(tr)}tb.replaceChildren(frag);var info=document.getElementById('info');if(!lastTotal){info.innerHTML=q().value.trim()?'일치하는 태그가 없습니다. 다른 키워드를 시도해보세요.':'태그가 없습니다'}else if(lastTotal>shown){info.innerHTML='<b>'+shown+'</b> / '+lastTotal+'개 표시 중 · 스크롤하면 더 보기'}else{info.innerHTML='<b>'+lastTotal+'</b>개'}rd.scrollTop=st}
+function updateStl(){var s=[];if(cfg.art)s.push(cfg.art==='@'?'아티스트 @':'아티스트 artist:');else s.push('아티스트 접두어 없음');s.push(cfg.space?'공백으로 출력':'밑줄 유지');if(cfg.pesc)s.push('괄호 이스케이프');s.push(cfg.sep==='nl'?'줄바꿈 구분':'쉼표 구분');s.push('글자 '+cfg.fs);document.getElementById('stl').textContent=s.join(' · ')}
+function render(){var rd=document.getElementById('res'),st=rd.scrollTop;var tags=filter();lastTotal=tags.length;var sl=tags.slice(0,shown);var tb=document.getElementById('tb');var frag=document.createDocumentFragment();for(var i=0;i<sl.length;i++){var t=sl[i],pk=!cfg.quick&&has(pos,t.n);var tr=document.createElement('tr');tr.className='r'+(pk?' pk':'');tr.dataset.n=t.n;tr.dataset.c=t.cat;var td1=document.createElement('td');td1.className='tc';var nh='<span class="nm">'+esc(t.n)+'</span> <span class="ct">('+fmt(t.cnt)+')</span>';if(t.p.kw.length)nh+='<div class="kw">'+t.p.kw.map(esc).join(' · ')+'</div>';td1.innerHTML=nh;var td2=document.createElement('td');td2.className='ds';var dh='';if(t.p.mj)dh+='<span class="c">['+esc(t.p.mj)+' &gt; '+esc(t.p.mn)+']</span> ';dh+=esc(t.p.tx);td2.innerHTML=dh;tr.appendChild(td1);tr.appendChild(td2);frag.appendChild(tr)}tb.replaceChildren(frag);var info=document.getElementById('info');if(!lastTotal){info.innerHTML=q().value.trim()?'일치 태그 없음 · 다른 키워드 시도':'태그 없음'}else if(lastTotal>shown){info.innerHTML='<b>'+shown+'</b> / '+lastTotal+'개 표시 중 · 스크롤하면 더 보기'}else{info.innerHTML='<b>'+lastTotal+'</b>개'}rd.scrollTop=st}
 function q(){return document.getElementById('q')}
 function renderCol(){var el=document.getElementById('col'),pe=document.getElementById('ptags');el.className=(!cfg.quick&&pos.length)?'v':'';document.getElementById('cnt').textContent=pos.length?pos.length+'개':'';var frag=document.createDocumentFragment();pos.forEach(function(t){var sp=document.createElement('span');sp.className='tg';sp.dataset.c=String(t.c);sp.appendChild(document.createTextNode(fmtTag(t.n,t.c)+' '));var x=document.createElement('span');x.className='x';x.dataset.n=t.n;x.setAttribute('role','button');x.setAttribute('aria-label','제거');x.tabIndex=0;x.textContent='×';sp.appendChild(x);frag.appendChild(sp)});pe.replaceChildren(frag);save();render()}
 function toggle(name,cat){if(cfg.quick){var t=fmtTag(name,cat);navigator.clipboard.writeText(t).then(function(){toast(t+' 복사됨')}).catch(function(){toast('복사 실패')});return}var ai=pos.findIndex(function(t){return t.n===name});if(ai!==-1)pos.splice(ai,1);else pos.push({n:name,c:cat});renderCol()}
@@ -228,7 +283,7 @@ async function dFetch(path){var url=DAPI+path;if(pxIdx<0){try{var r=await fetch(
 async function fetchPreview(tag){if(imgCache.has(tag))return imgCache.get(tag);var imgs=[],src='';try{var r=await dFetch('/wiki_pages.json?search[title]='+encodeURIComponent(tag));if(r.ok){var ws=await r.json();if(ws.length&&ws[0].body){var b=ws[0].body,pids=[];var ei=b.search(/h[1-6]\.\s*Examples?\b/i);if(ei!==-1){var sec=b.slice(ei),lines=sec.split('\n'),st=lines[0]+'\n';for(var i=1;i<lines.length;i++){if(/^h[1-6]\./.test(lines[i]))break;st+=lines[i]+'\n'}var m,re=/post\s*#(\d+)/gi;while((m=re.exec(st))&&pids.length<2)pids.push(m[1])}if(pids.length){var pr=await dFetch('/posts.json?tags=id:'+pids.join(',')+'&limit='+pids.length);if(pr.ok)(await pr.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='wiki'}}}}catch(e){}if(!imgs.length){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=2');if(r.ok)(await r.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}catch(e){}}var res=imgs.length?{src:src,imgs:imgs}:null;imgCache.set(tag,res);return res}
 function hidePreview(){document.getElementById('pv').classList.remove('v');pvRow=null;clearTimeout(pvTimer);clearTimeout(pvHideTimer)}
 function posPv(tr){var pv=document.getElementById('pv');if(window.innerWidth<=600)return;var rc=tr.getBoundingClientRect();var ph=pv.offsetHeight,pw=pv.offsetWidth;var t=rc.top-ph-8;if(t<8)t=rc.bottom+8;if(t+ph>window.innerHeight-8)t=window.innerHeight-ph-8;var l=rc.left;l=Math.max(8,Math.min(l,window.innerWidth-pw-8));pv.style.top=Math.max(8,t)+'px';pv.style.left=l+'px'}
-async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;if(!data){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(proxyImg(im.u))+'" alt="" loading="lazy" decoding="async"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
+async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;if(!data){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(proxyImg(im.u))+'" data-src0="'+esc(im.u)+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
 function syncURL(){var p=new URLSearchParams();var qv=q().value.trim();if(qv)p.set('q',qv);if(mj)p.set('cat',mj);if(mn)p.set('sub',mn);var nu=location.pathname+(p.toString()?'?'+p:'');history.replaceState(null,'',nu)}
 function loadURL(){var p=new URLSearchParams(location.search);var qv=p.get('q');if(qv){q().value=qv;document.getElementById('qclr').classList.add('v')}var c=p.get('cat');if(c&&(c in tax)){mj=c;var s=p.get('sub');if(s&&tax[c].indexOf(s)>=0)mn=s}}
 function setup(){
@@ -256,7 +311,7 @@ document.getElementById('tb').addEventListener('mouseover',function(e){if(!cfg.p
 document.getElementById('res').addEventListener('mouseleave',function(){if(!cfg.preview||isTouch)return;clearTimeout(pvTimer);pvHideTimer=setTimeout(hidePreview,200)});
 document.getElementById('pv').addEventListener('mouseenter',function(){clearTimeout(pvHideTimer)});
 document.getElementById('pv').addEventListener('mouseleave',function(){if(!isTouch)hidePreview()});
-function lpStart(e){if(!cfg.preview)return;var tr=e.target.closest('tr.r');if(!tr)return;lpBlock=false;lpRow=tr;clearTimeout(lpTimer);clearTimeout(lpTimer);lpTimer=setTimeout(function(){tr.classList.add('lp')},180);lpTimer=setTimeout(function(){lpBlock=true;tr.classList.remove('lp');showPv(tr)},520);tr._lpFx=setTimeout(function(){tr.classList.add('lp')},180)}
+function lpStart(e){if(!cfg.preview)return;var tr=e.target.closest('tr.r');if(!tr)return;lpBlock=false;lpRow=tr;clearTimeout(lpTimer);clearTimeout(tr._lpFx);tr._lpFx=setTimeout(function(){tr.classList.add('lp')},180);lpTimer=setTimeout(function(){lpBlock=true;tr.classList.remove('lp');showPv(tr)},520)}
 function lpEnd(){clearTimeout(lpTimer);if(lpRow){clearTimeout(lpRow._lpFx);lpRow.classList.remove('lp');lpRow=null}}
 document.getElementById('tb').addEventListener('touchstart',lpStart,{passive:true});
 document.getElementById('tb').addEventListener('touchend',lpEnd,{passive:true});
@@ -274,6 +329,18 @@ async function loadCSVText(){try{var raw=localStorage.getItem('dt-csv-v1');if(ra
 async function loadTaxJSON(){try{var raw=localStorage.getItem('dt-tax-v1');if(raw){var d=JSON.parse(raw);if(d&&d.t&&Date.now()-d.t<CSV_TTL&&d.j)return d.j}}catch(e){}try{var j=await fetch(TAXF).then(function(r){return r.json()});localStorage.setItem('dt-tax-v1',JSON.stringify({t:Date.now(),j:j}));return j}catch(e){return{}}}
 async function init(){load();applyFs();try{var rs=await Promise.all([loadCSVText(),loadTaxJSON()]);tax=rs[1]||{};var lines=rs[0].split('\n');for(var i=1;i<lines.length;i++){var ln=lines[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length<4)continue;var p=parseDesc(c[3]);var raw=c[0]+' '+p.tx+' '+p.kw.join(' ');all.push({n:c[0],cat:+c[1],cnt:+c[2],p:p,s:(raw+' '+raw.replace(/\s/g,'')).toLowerCase()})}}catch(e){document.getElementById('info').textContent='데이터 로드 실패';return}loadURL();buildCats();renderCol();render();setup()}
 init();
+})();
+</script>
+<script>
+(function(){
+var openBtn=document.getElementById('infoBtn'),mdl=document.getElementById('aboutMdl'),closeBtn=document.getElementById('infoClose');
+if(!openBtn||!mdl||!closeBtn)return;
+function op(){mdl.classList.add('v');closeBtn.focus()}
+function cl(){mdl.classList.remove('v');openBtn.focus()}
+openBtn.addEventListener('click',op);
+closeBtn.addEventListener('click',cl);
+mdl.addEventListener('click',function(e){if(e.target===mdl)cl()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&mdl.classList.contains('v'))cl()});
 })();
 </script>
 </body>
