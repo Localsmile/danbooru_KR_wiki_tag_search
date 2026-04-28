@@ -198,9 +198,9 @@ NAI 가중치를 로컬/PixAI (SDXL)에서 사용 시 문제가 발생할 가능
 <h4>패치노트</h4>
 <h5>v1.1 — 2026.04.29</h5>
 <ul>
-<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성), 다크 톤 정비</li>
+<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성, 다크 톤 정비</li>
 <li>프록시 체인 변경: corsproxy.io → codetabs → allorigins 자동 폴백</li>
-<li>이미지 프록시 Cloudflare 백본 적용</li>
+<li>이미지 프록시 다단 폴백 (direct → wsrv → statically → corsproxy)</li>
 <li>프롬프트 변환/아티스트 작품 태그 파싱 엣지 케이스 수정</li>
 <li>프롬프트 변환 도움말 개선</li>
 <li>CSV 24시간 로컬 캐시, 모든 페이지 공유</li>
