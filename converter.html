@@ -81,6 +81,28 @@ textarea{resize:vertical;padding:10px 12px;min-height:60px;font-size:calc(13px +
 @media(hover:none){
 #nav a:hover{background:transparent}
 }
+#ftr{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding:5px 2px 0;font-size:calc(10px + var(--fs));color:var(--tx4);flex-shrink:0;border-top:1px solid var(--bd);margin-top:2px}
+#ftr .v{color:var(--tx3)}
+#ftr button{background:none;border:none;color:var(--tx3);cursor:pointer;padding:2px 8px;font-size:inherit;border-radius:3px}
+#ftr button:hover{color:var(--ac);background:var(--s2)}
+.mdl{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.mdl.v{display:flex}
+.mdl-bd{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);max-width:540px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.6)}
+.mdl-h{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--bd);font-size:calc(13px + var(--fs));color:var(--tx);font-weight:600}
+.mdl-h button{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:calc(15px + var(--fs));padding:0 4px}
+.mdl-h button:hover{color:var(--tx)}
+.mdl-c{padding:14px 18px;overflow-y:auto;line-height:1.65;color:var(--tx2);font-size:calc(12px + var(--fs))}
+.mdl-c h4{color:var(--tx);font-size:calc(13px + var(--fs));margin:14px 0 4px;font-weight:600}
+.mdl-c h4:first-child{margin-top:0}
+.mdl-c h5{color:var(--ac);font-size:calc(11px + var(--fs));margin:8px 0 3px;font-weight:600}
+.mdl-c p{margin:0 0 6px}
+.mdl-c ul{padding-left:18px;margin:2px 0 8px}
+.mdl-c li{font-size:calc(11px + var(--fs));margin:2px 0;line-height:1.55}
+.mdl-c a{color:var(--ac);word-break:break-all}
+.mdl-c .nt{color:var(--tx4);font-size:calc(10px + var(--fs));font-style:italic;margin-top:6px}
+.nh{font-size:calc(11px + var(--fs));color:var(--tx3);padding:6px 2px 0;font-style:italic;line-height:1.5}
+.nh:empty{display:none}
+.nh b{color:var(--ac);font-style:normal;font-weight:600}
 </style>
 </head>
 <body>
@@ -90,53 +112,42 @@ textarea{resize:vertical;padding:10px 12px;min-height:60px;font-size:calc(13px +
 <a href="converter.html" class="on">프롬프트 변환</a>
 <a href="artist.html">아티스트 작품</a>
 </nav>
-<div id="desc">NAI ↔ 로컬/PixAI SDXL 프롬프트 문법 변환 · 가중치 정규화 · 아티스트 태그 처리</div>
+<div id="desc">NAI ↔ 로컬/PixAI SDXL 프롬프트 변환 · 가중치 정규화 · 아티스트 자동 처리</div>
 <div id="dirs" role="tablist" aria-label="변환 방향">
 <button class="on" data-d="n2l" type="button" role="tab" aria-selected="true">NAI → Local</button>
 <button data-d="l2n" type="button" role="tab" aria-selected="false">Local → NAI</button>
 </div>
 <div id="main">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-<span style="font-size:calc(10px + var(--fs));color:var(--tx3)" id="dbst">DB 로드 중...</span>
+<span style="font-size:calc(10px + var(--fs));color:var(--tx3)" id="dbst">아티스트 목록 준비 중...</span>
 <button id="hbtn" type="button" style="font-size:calc(11px + var(--fs));padding:4px 11px;color:var(--tx2)" aria-expanded="false">도움말</button>
 </div>
 <div id="help" class="bx">
-<h4>프롬프트 변환기</h4>
-NAI ↔ 로컬/PixAI SDXL 프롬프트 문법 변환.
-<h4>방향</h4>
+<h4>용도</h4>
+NAI와 로컬/PixAI 계열 프롬프트 표기 상호 변환.
+<h4>기본</h4>
 <ul>
-<li><b>NAI → Local</b> : NAI 프롬프트를 로컬 형식으로 변환</li>
-<li><b>Local → NAI</b> : 로컬 프롬프트를 NAI 형식으로 변환</li>
+<li><b>NAI → Local</b> : <code>{tag}</code>, <code>1.2::tag ::</code>, <code>artist:name</code> → 로컬용 표기</li>
+<li><b>Local → NAI</b> : <code>(tag:1.2)</code>, <code>@(artist)</code> → NAI용 표기</li>
+<li>아티스트 이름 자동 인식. 방향에 따라 <code>artist:</code> 또는 <code>@()</code> 적용</li>
 </ul>
-<h4>NAI 문법</h4>
+<h4>가중치 정규화</h4>
+NAI 가중치를 로컬/PixAI (SDXL)에서 사용 시 문제가 발생할 가능성이 높기에 가중치 정규화 시도.
 <ul>
-<li><code>{tag}</code> 강조 ×1.05 / <code>[tag]</code> 약화 ÷1.05 (겹칠수록 곱셈)</li>
-<li><code>1.5::tag ::</code> 수치 강조 (V4+)</li>
-<li><code>-1::tag ::</code> 음수 가중치 (V4.5+)</li>
-<li><code>artist:name</code> 아티스트 태그</li>
+<li><b>원본</b> — 숫자 유지. 비교용</li>
+<li><b>최댓값 맞춤</b> — 가장 강한 태그를 지정한 최댓값에 맞추고 전체 비율 동시 축소</li>
+<li><b>비례 축소</b> — 가중치 변동 폭 축소. 강도 50%면 <code>1.4</code> → <code>1.2</code></li>
 </ul>
-<h4>로컬 문법</h4>
+<h4>아티스트</h4>
 <ul>
-<li><code>(tag:1.2)</code> 가중치 지정</li>
-<li><code>\(tag\)</code> 괄호 이스케이프</li>
-<li><code>@(name)</code> 아티스트 태그 (anima 모델 한정)</li>
+<li><b>이름만</b> : <code>artist:name</code> → <code>name</code></li>
+<li><b>@() 변환</b> : <code>artist:name</code> → <code>@(name)</code></li>
 </ul>
-<h4>아티스트 처리</h4>
+<h4>주의</h4>
 <ul>
-<li>NAI → Local : <code>artist:</code> 제거 후 이름만 또는 <code>@()</code>로 출력 (anima용)</li>
-<li>Local → NAI : CSV DB의 아티스트에 자동 <code>artist:</code> 부착</li>
+<li>마이너스 가중치는 별도 칸에 분리</li>
+<li>괄호 포함 아티스트는 <code>\(</code>, <code>\)</code> 유지 처리</li>
 </ul>
-<h4>띄어쓰기</h4>
-출력 태그의 공백/밑줄 처리. 기본값 공백.
-<h4>가중치 정규화 (NAI → Local)</h4>
-NAI는 가중치 높아도 잘 버티는데 로컬은 그대로 넣으면 그림이 깨질 수 있음. 정규화로 로컬에 맞게 줄여줌.
-<ul>
-<li><b>끔</b> : 가중치 그대로 변환</li>
-<li><b>고정 압축</b> : 모든 가중치를 일정 비율로 줄임. 압축률 낮을수록 더 세게 줄이고, 최대값 넘으면 잘라냄</li>
-<li><b>상대값</b> : 제일 높은 가중치를 목표값까지 내리고 나머지도 같은 비율로 따라감. 태그끼리 강약 비율은 유지</li>
-</ul>
-<h4>음수 가중치</h4>
-마이너스 가중치 토큰은 별도 영역에 분리 출력됨.
 </div>
 <div class="bx">
 <div class="row" id="art-r"></div>
@@ -144,14 +155,15 @@ NAI는 가중치 높아도 잘 버티는데 로컬은 그대로 넣으면 그림
 <div class="grp"><span class="fl">띄어쓰기</span><button data-sp="space" class="on" type="button">a b</button><button data-sp="under" type="button">a_b</button></div>
 </div>
 <div class="row" id="norm-r">
-<div class="grp"><span class="fl">정규화</span><button data-nm="off" class="on" type="button">끔</button><button data-nm="rel" type="button">상대값</button><button data-nm="fixed" type="button">고정 압축</button></div>
+<div class="grp"><span class="fl">가중치 정규화</span><button data-nm="off" class="on" type="button">원본</button><button data-nm="rel" type="button">최댓값 맞춤</button><button data-nm="fixed" type="button">비례 축소</button></div>
 </div>
+<div class="nh" id="nh">가중치 그대로 변환</div>
 <div class="nc" id="ncf">
-<label>압축률</label><input type="range" id="nfr" min="20" max="100" value="50" aria-label="압축률"><span class="nv" id="nfv">0.50</span>
-<label>최대값</label><input type="number" id="nfc" min="1.1" max="2" step="0.1" value="1.5" aria-label="최대값">
+<label>강도</label><input type="range" id="nfr" min="20" max="100" value="50" aria-label="강도"><span class="nv" id="nfv">0.50</span>
+<label>상한</label><input type="number" id="nfc" min="1.1" max="2" step="0.1" value="1.5" aria-label="상한">
 </div>
 <div class="nc" id="ncr">
-<label>목표값</label><input type="number" id="nrt" min="1.1" max="2" step="0.1" value="1.3" aria-label="목표값">
+<label>최댓값</label><input type="number" id="nrt" min="1.1" max="2" step="0.1" value="1.3" aria-label="최댓값">
 </div>
 </div>
 <div class="bx">
@@ -168,9 +180,34 @@ NAI는 가중치 높아도 잘 버티는데 로컬은 그대로 넣으면 그림
 <textarea id="outp" rows="4" readonly placeholder="변환 결과" aria-label="변환 결과"></textarea>
 </div>
 <div class="bx negbx" id="negbox" style="display:none">
-<div class="ih"><span class="lbl" style="color:var(--amb)">⚠ 마이너스 가중치 (분리됨)</span><div class="ih-r"><button onclick="window.cpy('negout')" type="button">복사</button></div></div>
+<div class="ih"><span class="lbl" style="color:var(--amb)">마이너스 가중치 (분리됨)</span><div class="ih-r"><button onclick="window.cpy('negout')" type="button">복사</button></div></div>
 <textarea id="negout" rows="2" readonly placeholder="" aria-label="마이너스 가중치"></textarea>
-<div class="neg-note">음수 가중치는 별도로 분리해서 높은 상호 분리도 장면에 쓰세요</div>
+<div class="neg-note">음수 가중치는 별도로 분리</div>
+</div>
+</div>
+<footer id="ftr"><span class="v">로컬AI</span><span>·</span><span>v1.1</span><span>·</span><button id="infoBtn" type="button" aria-haspopup="dialog">정보</button></footer>
+</div>
+<div class="mdl" id="aboutMdl" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+<div class="mdl-bd">
+<div class="mdl-h"><span id="infoTitle">정보</span><button id="infoClose" type="button" aria-label="닫기">✕</button></div>
+<div class="mdl-c">
+<h4>이거 만든 놈</h4>
+<p>로컬AI</p>
+<h4>추천 도구</h4>
+<p><a href="https://github.com/Localsmile/danbooru-tag-selector-KR-wiki/raw/refs/heads/main/danbooru-tag-selector.user.js" target="_blank" rel="noopener">Danbooru 태그 선택기 (KR Wiki)</a> — Tampermonkey용 단부루 태그 복사 도구</p>
+<h4>패치노트</h4>
+<h5>v1.0 — 2026.04.29</h5>
+<ul>
+<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성), 다크 톤 정비</li>
+<li>프록시 체인 변경: corsproxy.io → codetabs → allorigins 자동 폴백</li>
+<li>이미지 프록시 Cloudflare 백본 적용</li>
+<li>프롬프트 변환/아티스트 작품 태그 파싱 엣지 케이스 수정</li>
+<li>프롬프트 변환 도움말 개선</li>
+<li>CSV 24시간 로컬 캐시, 모든 페이지 공유</li>
+<li>viewport 확대 차단 해제, 키보드 네비게이션 지원</li>
+<li>아티스트 페이지: URL 동기화, 자동완성 강화, 이미지 lazy/async</li>
+</ul>
+
 </div>
 </div>
 </div>
@@ -189,7 +226,7 @@ function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=
 
 function parseDB(text){var ls=text.split('\n');for(var i=1;i<ls.length;i++){var ln=ls[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length>=2&&+c[1]===1)artistDB.add(c[0].toLowerCase())}}
 
-async function loadDB(){var st=document.getElementById('dbst');try{var raw=localStorage.getItem('dt-csv-v1');if(raw){var d=JSON.parse(raw);if(d&&d.t&&Date.now()-d.t<CSV_TTL&&d.txt){parseDB(d.txt);st.textContent=artistDB.size+'명 로드됨 (캐시)';return}}}catch(e){}try{var r=await fetch(CSV);var t=await r.text();try{localStorage.setItem('dt-csv-v1',JSON.stringify({t:Date.now(),txt:t}))}catch(e){}parseDB(t);st.textContent=artistDB.size+'명 로드됨'}catch(e){st.textContent='DB 로드 실패'}}
+async function loadDB(){var st=document.getElementById('dbst');try{var raw=localStorage.getItem('dt-csv-v1');if(raw){var d=JSON.parse(raw);if(d&&d.t&&Date.now()-d.t<CSV_TTL&&d.txt){parseDB(d.txt);st.textContent='아티스트 '+artistDB.size+'명 준비됨';return}}}catch(e){}try{var r=await fetch(CSV);var t=await r.text();try{localStorage.setItem('dt-csv-v1',JSON.stringify({t:Date.now(),txt:t}))}catch(e){}parseDB(t);st.textContent='아티스트 '+artistDB.size+'명 준비됨'}catch(e){st.textContent='아티스트 목록 준비 실패'}}
 
 function toast(m){var e=document.getElementById('tt');e.textContent=m;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){e.classList.remove('on')},1500)}
 
@@ -278,7 +315,8 @@ var inp=document.getElementById('inp').value.trim();
 var warns=[],posT=[],negT=[];
 if(inp){var raw=parseNaiTokens(inp);
 for(var i=0;i<raw.length;i++){var t=procNai(raw[i]);if(!t)continue;
-if(!t.sp&&t.w<0){t.w=Math.abs(t.w);negT.push(t)}else posT.push(t)}}
+var arr=(!t.sp&&t.c.indexOf(',')!==-1)?t.c.split(',').map(function(x){return x.trim()}).filter(Boolean).map(function(x){return{c:x,w:t.w,art:t.art||isArt(x),sp:false}}):[t];
+for(var ai=0;ai<arr.length;ai++){var it=arr[ai];if(!it.sp&&it.w<0){it.w=Math.abs(it.w);negT.push(it)}else posT.push(it)}}}
 if(negT.length)warns.push(negT.length+'개 마이너스 가중치 분리');
 posT=norm(posT);document.getElementById('outp').value=posT.map(fmtLoc).join(', ');
 if(negT.length){document.getElementById('negout').value=negT.map(function(t){
@@ -295,19 +333,29 @@ if(c==='(')pr++;else if(c===')'&&pr>0)pr--;
 if(c===','&&pr===0){if(cur.trim())tokens.push(cur.trim());cur=''}else cur+=c}
 if(cur.trim())tokens.push(cur.trim());return tokens}
 
+function parseImplicitLoc(tk){
+var s=tk.trim(),w=1,changed=false;
+while(s.length>1&&s[0]==='('&&s[s.length-1]===')'){s=s.slice(1,-1).trim();w*=1.1;changed=true}
+while(s.length>1&&s[0]==='['&&s[s.length-1]===']'){s=s.slice(1,-1).trim();w/=1.1;changed=true}
+if(!changed||!s)return null;
+s=unescP(s);
+return{c:s,w:w,art:isArt(s),sp:false}
+}
+
+function hasOuterWrap(s){if(!(s[0]==='('&&s[s.length-1]===')'))return false;var d=0;for(var i=0;i<s.length;i++){var c=s[i];if(c==='\\'){i++;continue}if(c==='(')d++;else if(c===')'){d--;if(d===0&&i<s.length-1)return false;if(d<0)return false}}return d===0}
+function stripOuterLoc(s){var changed=true;while(changed){changed=false;s=s.trim();if(s[0]==='@'){s=s.slice(1).trim();changed=true}if(s[0]==='('&&s[s.length-1]===')'&&hasOuterWrap(s)){s=s.slice(1,-1).trim();changed=true}}return s}
+function splitTailWeight(s){var cut=-1,d=0;for(var i=0;i<s.length;i++){var c=s[i];if(c==='\\'){i++;continue}if(c==='(')d++;else if(c===')'&&d>0)d--;else if(c===':'&&d===0)cut=i}if(cut>0){var tail=s.slice(cut+1).trim();if(/^[+-]?\d+(?:\.\d+)?$/.test(tail))return{name:s.slice(0,cut).trim(),w:parseFloat(tail)}}return{name:s,w:1}}
 function procLoc(tk){
 var lo=tk.toLowerCase();
 if(lo==='break'||lo==='and')return{c:tk.toUpperCase(),w:1,art:false,sp:true};
 if(/^<(lora|lyco):[^>]+>$/i.test(tk))return{c:tk,w:1,art:false,sp:true};
-var am=tk.match(/^@\((.+)\)$/);
-if(am){var inner=am[1];var wm=inner.match(/^(.+):([+-]?\d+(?:\.\d+)?)$/);
-var name=(wm?wm[1]:inner).trim();var w=wm?parseFloat(wm[2]):1;
-return{c:name,w:w,art:true,sp:false}}
+if(/^@\s*/.test(tk)){var inner=stripOuterLoc(tk);var sw=splitTailWeight(inner);return{c:unescP(sw.name),w:sw.w,art:true,sp:false}}
 if(tk.startsWith('(')&&tk.endsWith(')')){var inner=tk.slice(1,-1);var depth=0;
 for(var j=inner.length-1;j>0;j--){var ch=inner[j],pv=j>0?inner[j-1]:'';
 if(ch===')'&&pv!=='\\')depth++;else if(ch==='('&&pv!=='\\')depth--;
 else if(ch===':'&&depth===0){var ct=inner.slice(0,j).trim();var wv=parseFloat(inner.slice(j+1));
 if(ct&&Number.isFinite(wv)){ct=unescP(ct);return{c:ct,w:wv,art:isArt(ct),sp:false}}break}}}
+var imp=parseImplicitLoc(tk);if(imp)return imp;
 var clean=unescP(tk);
 var artM=clean.match(/^artist\s*:\s*(.+)$/i);
 if(artM)return{c:artM[1].trim(),w:1,art:true,sp:false};
@@ -321,7 +369,7 @@ if(n<0)return'['.repeat(-n)+ct+']'.repeat(-n)}
 return fmt(w)+'::'+ct+' ::'}
 
 function fmtNai(t){
-if(t.sp)return t.c;var name=fmtName(t.c);
+if(t.sp)return t.c;var name=t.art?t.c.replace(/\s+/g,'_'):fmtName(t.c);
 if(t.art)name='artist:'+name;
 var w=Math.round(t.w*100)/100;var hw=Math.abs(w-1)>=0.01;
 return hw?toNaiW(w,name):name}
@@ -358,7 +406,7 @@ renderArt();liveTrigger()}
 function renderArt(){
 var r=document.getElementById('art-r');
 if(dir==='n2l'){r.innerHTML='<div class="grp"><span class="fl">아티스트</span><button data-at="remove" type="button"'+(artMode==='remove'?' class="on"':'')+'>이름만</button><button data-at="at" type="button"'+(artMode==='at'?' class="on"':'')+'>@() 변환</button></div>'}
-else{r.innerHTML='<div class="grp"><span class="fl">아티스트</span><span style="font-size:calc(10px + var(--fs));color:var(--tx3)">DB 아티스트에 자동 artist: 부착</span></div>'}}
+else{r.innerHTML='<div class="grp"><span class="fl">아티스트</span><span style="font-size:calc(10px + var(--fs));color:var(--tx3)">알려진 아티스트는 자동으로 artist: 붙임</span></div>'}}
 
 window.clr=function(id){document.getElementById(id).value='';if(id==='inp'){document.getElementById('outp').value='';document.getElementById('negout').value='';document.getElementById('negbox').style.display='none';document.getElementById('warn').textContent=''}};
 window.cpy=function(id){var v=document.getElementById(id).value;if(!v){toast('비어있음');return}navigator.clipboard.writeText(v).then(function(){toast('복사됨')}).catch(function(){toast('복사 실패')})};
@@ -380,6 +428,27 @@ document.getElementById('negout').addEventListener('focus',function(){this.selec
 document.getElementById('pasteBtn').addEventListener('click',async function(){try{var t=await navigator.clipboard.readText();if(t){document.getElementById('inp').value=t;liveTrigger();toast('붙여넣음')}}catch(e){toast('클립보드 읽기 실패')}});
 
 setDir('n2l');loadDB();
+})();
+</script>
+<script>
+(function(){
+var openBtn=document.getElementById('infoBtn'),mdl=document.getElementById('aboutMdl'),closeBtn=document.getElementById('infoClose');
+if(openBtn&&mdl&&closeBtn){
+function op(){mdl.classList.add('v');closeBtn.focus()}
+function cl(){mdl.classList.remove('v');openBtn.focus()}
+openBtn.addEventListener('click',op);
+closeBtn.addEventListener('click',cl);
+mdl.addEventListener('click',function(e){if(e.target===mdl)cl()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&mdl.classList.contains('v'))cl()});
+}
+var nh=document.getElementById('nh'),nrEl=document.getElementById('norm-r'),drEl=document.getElementById('dirs');
+if(nh&&nrEl){
+var hints={off:'가중치 그대로 변환',rel:'가장 강한 태그를 <b>최댓값</b>에 맞추고 전체 비례 축소',fixed:'가중치 변동분을 <b>강도</b>%만 적용 · <b>상한</b> 초과분 컷'};
+function updHint(){var on=document.querySelector('#norm-r button.on');var nm=on?on.dataset.nm:'off';var d=document.querySelector('#dirs button.on');var isN2L=d&&d.dataset.d==='n2l';nh.innerHTML=isN2L?(hints[nm]||''):''}
+nrEl.addEventListener('click',function(e){if(e.target.closest('button[data-nm]'))setTimeout(updHint,0)});
+if(drEl)drEl.addEventListener('click',function(e){if(e.target.closest('button[data-d]'))setTimeout(updHint,0)});
+updHint();
+}
 })();
 </script>
 </body>
