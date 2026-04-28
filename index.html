@@ -216,9 +216,9 @@ tr.r{-webkit-user-select:none;user-select:none}
 <h4>패치노트</h4>
 <h5>v1.1 — 2026.04.29</h5>
 <ul>
-<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성), 다크 톤 정비</li>
+<li>UI 전면 개편: 모바일/PC 일관 톤, 접근성, 다크 톤 정비</li>
 <li>프록시 체인 변경: corsproxy.io → codetabs → allorigins 자동 폴백</li>
-<li>이미지 프록시 Cloudflare 백본 적용</li>
+<li>이미지 프록시 다단 폴백 (direct → wsrv → statically → corsproxy)</li>
 <li>프롬프트 변환/아티스트 작품 태그 파싱 엣지 케이스 수정</li>
 <li>프롬프트 변환 도움말 개선</li>
 <li>CSV 24시간 로컬 캐시, 모든 페이지 공유</li>
@@ -253,9 +253,12 @@ var isTouch=isMobile;
 var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function wsrvImg(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')}
-function proxyImg(u){return pxIdx>=0?wsrvImg(u):u}
-function previewImgErr(img){if(!img.dataset.px){img.dataset.px='1';img.src=wsrvImg(img.dataset.src0||img.src);return}img.style.display='none'}
+var IMG_PXS=[function(u){return u},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PX_NAMES=['direct','wsrv','statically','corsproxy'];
+var imgPxStart=0;
+function imgSrc(u){return IMG_PXS[imgPxStart](u)}
+function proxyImg(u){return imgSrc(u)}
+function previewImgErr(img){var i=parseInt(img.dataset.pxi||String(imgPxStart),10)+1;if(i>=IMG_PXS.length){img.style.display='none';return}img.dataset.pxi=String(i);if(i>imgPxStart)imgPxStart=i;img.src=IMG_PXS[i](img.dataset.src0||img.src)}
 window.previewImgErr=previewImgErr
 function getSep(){return cfg.sep==='nl'?'\n':', '}
 function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=ln[i];if(q){if(ch==='"'&&ln[i+1]==='"'){c+='"';i++}else if(ch==='"'){q=false}else{c+=ch}}else{if(ch==='"'){q=true}else if(ch===','){r.push(c);c=''}else{c+=ch}}}r.push(c);return r}
@@ -283,7 +286,7 @@ async function dFetch(path){var url=DAPI+path;if(pxIdx<0){try{var r=await fetch(
 async function fetchPreview(tag){if(imgCache.has(tag))return imgCache.get(tag);var imgs=[],src='';try{var r=await dFetch('/wiki_pages.json?search[title]='+encodeURIComponent(tag));if(r.ok){var ws=await r.json();if(ws.length&&ws[0].body){var b=ws[0].body,pids=[];var ei=b.search(/h[1-6]\.\s*Examples?\b/i);if(ei!==-1){var sec=b.slice(ei),lines=sec.split('\n'),st=lines[0]+'\n';for(var i=1;i<lines.length;i++){if(/^h[1-6]\./.test(lines[i]))break;st+=lines[i]+'\n'}var m,re=/post\s*#(\d+)/gi;while((m=re.exec(st))&&pids.length<2)pids.push(m[1])}if(pids.length){var pr=await dFetch('/posts.json?tags=id:'+pids.join(',')+'&limit='+pids.length);if(pr.ok)(await pr.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='wiki'}}}}catch(e){}if(!imgs.length){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=2');if(r.ok)(await r.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}catch(e){}}var res=imgs.length?{src:src,imgs:imgs}:null;imgCache.set(tag,res);return res}
 function hidePreview(){document.getElementById('pv').classList.remove('v');pvRow=null;clearTimeout(pvTimer);clearTimeout(pvHideTimer)}
 function posPv(tr){var pv=document.getElementById('pv');if(window.innerWidth<=600)return;var rc=tr.getBoundingClientRect();var ph=pv.offsetHeight,pw=pv.offsetWidth;var t=rc.top-ph-8;if(t<8)t=rc.bottom+8;if(t+ph>window.innerHeight-8)t=window.innerHeight-ph-8;var l=rc.left;l=Math.max(8,Math.min(l,window.innerWidth-pw-8));pv.style.top=Math.max(8,t)+'px';pv.style.left=l+'px'}
-async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;if(!data){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(proxyImg(im.u))+'" data-src0="'+esc(im.u)+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
+async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;if(!data){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(imgSrc(im.u))+'" data-src0="'+esc(im.u)+'" data-pxi="'+imgPxStart+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
 function syncURL(){var p=new URLSearchParams();var qv=q().value.trim();if(qv)p.set('q',qv);if(mj)p.set('cat',mj);if(mn)p.set('sub',mn);var nu=location.pathname+(p.toString()?'?'+p:'');history.replaceState(null,'',nu)}
 function loadURL(){var p=new URLSearchParams(location.search);var qv=p.get('q');if(qv){q().value=qv;document.getElementById('qclr').classList.add('v')}var c=p.get('cat');if(c&&(c in tax)){mj=c;var s=p.get('sub');if(s&&tax[c].indexOf(s)>=0)mn=s}}
 function setup(){
