@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>태그 검색</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%231a1a1a%22/><path d=%22M9 10h14M9 16h14M9 22h8%22 stroke=%22%236e9aff%22 stroke-width=%222.5%22 stroke-linecap=%22round%22/></svg>">
+<link rel="preconnect" href="https://proxy.localai0301.workers.dev" crossorigin>
 <link rel="preconnect" href="https://danbooru.donmai.us" crossorigin>
 <link rel="preconnect" href="https://wsrv.nl" crossorigin>
 <link rel="preconnect" href="https://corsproxy.io" crossorigin>
@@ -262,7 +263,9 @@ var all=[],tax={},pos=[];
 var mj=null,mn=null,shown=200,lastTotal=0;
 var cfg={art:'',space:false,sep:'cs',pesc:false,fs:18,quick:true,preview:true};
 var DAPI='https://danbooru.donmai.us';
+var WORKER='https://proxy.localai0301.workers.dev';
 var PROXIES=[
+{name:'worker',build:function(u){return WORKER+'/api'+u.slice(DAPI.length)}},
 {name:'corsproxy',build:function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}},
 {name:'codetabs',build:function(u){return'https://api.codetabs.com/v1/proxy/?quest='+u}},
 {name:'allorigins',build:function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}}
@@ -275,8 +278,8 @@ var isTouch=isMobile&&!hasHover;
 var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-var IMG_PXS=[function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return u},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
-var IMG_PX_NAMES=['wsrv','direct','statically','corsproxy'];
+var IMG_PXS=[function(u){return WORKER+'/img?url='+encodeURIComponent(u)},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return u},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PX_NAMES=['worker','wsrv','direct','statically','corsproxy'];
 var imgPxStart=0;
 function imgSrc(u){return IMG_PXS[imgPxStart](u)}
 function proxyImg(u){return imgSrc(u)}

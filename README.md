@@ -4,6 +4,10 @@
 https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 
 # 패치노트
+26.06.21 (v2.1)
+- 자체 Cloudflare Worker 프록시 도입: API 호출·이미지 로드 모두 Worker를 1순위로 경유. Cloudflare 망 내부 통신으로 단부루 측 챌린지 통과율 향상 + 엣지 캐시 24h 적용
+- 기존 퍼블릭 프록시(corsproxy/codetabs/allorigins, wsrv/statically)는 Worker 실패 시 자동 폴백용 안전망으로 유지 — 다단 체인을 유지하되 Worker가 우선
+
 26.06.20 (v2.0)
 - UI/UX 전면 개편: 정제된 다크 톤 통일, 포커스 글로우, 옵션 패널 개선
 - 옵션 패널을 기본 펼침으로 변경 + 닫기 상태를 다음 방문 시에도 유지 (닫아도 현재 설정 요약이 한 줄로 표시)
@@ -33,4 +37,4 @@ https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 - 단부루 접속 차단 가능성을 고려하여 경유 프록시를 폴백으로 설정
 
 # 참고: 단부루 직접 접속 이슈
-단부루(danbooru.donmai.us)에 직접 접속할 때 Cloudflare/쿠키 문제로 인해 먼저 https://www.donmai.us/ 를 방문한 뒤에야 접속이 풀리는 현상이 보고되었습니다. 이는 단부루 사이트 자체의 동작이며 본 도구와는 별개입니다. 본 도구는 단부루 API 호출과 이미지 로드를 처음부터 프록시(wsrv.nl, corsproxy.io 등)를 경유하므로 직접 접속 의존도를 최소화했습니다.
+단부루(danbooru.donmai.us)에 직접 접속할 때 Cloudflare/쿠키 문제로 인해 먼저 https://www.donmai.us/ 를 방문한 뒤에야 접속이 풀리는 현상이 보고되었습니다. 이는 단부루 사이트 자체의 동작이며 본 도구와는 별개입니다. 본 도구는 단부루 API 호출과 이미지 로드를 자체 Cloudflare Worker 프록시를 1순위로 경유합니다(Worker 실패 시 퍼블릭 프록시로 자동 폴백). Worker가 Cloudflare 망 내부에서 통신하므로 직접 접속 의존도를 최소화했습니다.
