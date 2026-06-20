@@ -5,8 +5,8 @@ https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 
 # 패치노트
 26.06.21 (v2.1)
-- 자체 Cloudflare Worker 프록시 도입: API 호출·이미지 로드 모두 Worker를 1순위로 경유. Cloudflare 망 내부 통신으로 단부루 측 챌린지 통과율 향상 + 엣지 캐시 24h 적용
-- 기존 퍼블릭 프록시(corsproxy/codetabs/allorigins, wsrv/statically)는 Worker 실패 시 자동 폴백용 안전망으로 유지 — 다단 체인을 유지하되 Worker가 우선
+- 이미지 로드 경로 정리: 단부루 이미지 CDN(cdn.donmai.us)은 별도 보호가 없어 직접 로드가 가장 빠르고 안정적. direct를 1순위로, wsrv/statically/corsproxy를 폴백으로 유지
+- 진단 결과: 단부루 API(danbooru.donmai.us)는 Cloudflare 챌린지로 서버사이드 접근이 차단되지만, 이미지 CDN(cdn.donmai.us)은 차단 대상이 아님을 확인
 
 26.06.20 (v2.0)
 - UI/UX 전면 개편: 정제된 다크 톤 통일, 포커스 글로우, 옵션 패널 개선
@@ -17,7 +17,7 @@ https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 - 이모지 제거, 텍스트 기반(SVG) 아이콘으로 통일
 - 도움말/안내문을 사용자 친화적 톤으로 재작성
 - 4개 페이지(태그 검색/프롬프트 변환/아티스트 작품/코어태그) UI 일관화
-- 이미지 프록시 순서 변경: wsrv.nl을 1순위로, 이후 direct → statically → corsproxy 다단 폴백
+- 이미지 프록시 순서 변경: direct(cdn.donmai.us)을 1순위로, 이후 wsrv → statically → corsproxy 다단 폴백
 
 26.03.29 
 - 파편화된 대분류/중분류의 분류를 조금 더 정확하게 변경

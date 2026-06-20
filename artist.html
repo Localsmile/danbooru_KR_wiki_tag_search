@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>아티스트 작품</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%231a1a1a%22/><rect x=%226%22 y=%228%22 width=%228%22 height=%2216%22 rx=%221%22 stroke=%22%23e87070%22 stroke-width=%222%22 fill=%22none%22/><rect x=%2218%22 y=%2210%22 width=%228%22 height=%2212%22 rx=%221%22 stroke=%22%23e87070%22 stroke-width=%222%22 fill=%22none%22/></svg>">
-<link rel="preconnect" href="https://proxy.localai0301.workers.dev" crossorigin>
+<link rel="preconnect" href="https://cdn.donmai.us" crossorigin>
 <link rel="preconnect" href="https://danbooru.donmai.us" crossorigin>
 <link rel="preconnect" href="https://wsrv.nl" crossorigin>
 <style>
@@ -157,12 +157,10 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 var CSV='danbooru_tags_classified.csv';
 var CSV_TTL=24*60*60*1000;
 var DAPI='https://danbooru.donmai.us';
-var WORKER='https://proxy.localai0301.workers.dev';
 var PROXIES=[
-{name:'worker',build:function(u){return WORKER+'/api'+u.slice(DAPI.length)}},
+{name:'allorigins',build:function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}},
 {name:'corsproxy',build:function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}},
-{name:'codetabs',build:function(u){return'https://api.codetabs.com/v1/proxy/?quest='+u}},
-{name:'allorigins',build:function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}}
+{name:'codetabs',build:function(u){return'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)}}
 ];
 var pxIdx=0,pxName=PROXIES[0].name;
 var artistDB=new Set();
@@ -170,8 +168,8 @@ var results=[];
 var reqSeq=0;
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-var IMG_PXS=[function(u){return WORKER+'/img?url='+encodeURIComponent(u)},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return u},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
-var IMG_PX_NAMES=['worker','wsrv','direct','statically','corsproxy'];
+var IMG_PXS=[function(u){return u},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PX_NAMES=['direct','wsrv','statically','corsproxy'];
 var imgPxStart=0;
 function imgSrc(u){return IMG_PXS[imgPxStart](u)}
 function imgErr(img){var i=parseInt(img.dataset.pxi||String(imgPxStart),10)+1;if(i>=IMG_PXS.length){img.replaceWith(document.createTextNode('이미지 로드 실패'));return}img.dataset.pxi=String(i);if(i>imgPxStart){imgPxStart=i;var pn=document.getElementById('status');if(pn&&!/이미지/.test(pn.textContent))pn.innerHTML+=' <span class="px">· 이미지 '+IMG_PX_NAMES[i]+'</span>'}img.src=IMG_PXS[i](img.dataset.src0)}
