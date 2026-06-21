@@ -4,9 +4,13 @@
 https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 
 # 패치노트
+26.06.22 (v2.2)
+- 미리보기/프록시 안정성: direct→allorigins→corsproxy→codetabs 폴백 체인, 본문 검증으로 200 HTML 응답 거름, TTL 캐시+중복요청 제거, API 일시 차단을 '예시 없음'과 구분해 재시도 버튼 표시
+- 이미지 로드: cdn.donmai.us 직접 로드 후 wsrv→statically→corsproxy 다단 폴백 유지
+- 프록시 상태 표시 제거, KT 등 일부 통신환경 안내문 추가
 26.06.21 (v2.1)
-- 이미지 로드 경로 정리: 단부루 이미지 CDN(cdn.donmai.us)은 별도 보호가 없어 직접 로드가 가장 빠르고 안정적. direct를 1순위로, wsrv/statically/corsproxy를 폴백으로 유지
-- 진단 결과: 단부루 API(danbooru.donmai.us)는 Cloudflare 챌린지로 서버사이드 접근이 차단되지만, 이미지 CDN(cdn.donmai.us)은 차단 대상이 아님을 확인
+- 이미지 로드 정리: 단부루 이미지 CDN(cdn.donmai.us)은 보호가 없어 직접 로드가 가장 빠르고 안정적이라 direct를 1순위로 고정. 불필요한 다단 폴백 제거
+- API 호출은 allorigins 단일 경유로 단순화 (corsproxy/codetabs 등 무응답 프록시 제거)
 
 26.06.20 (v2.0)
 - UI/UX 전면 개편: 정제된 다크 톤 통일, 포커스 글로우, 옵션 패널 개선
@@ -37,4 +41,10 @@ https://localsmile.github.io/danbooru_KR_wiki_tag_search/
 - 단부루 접속 차단 가능성을 고려하여 경유 프록시를 폴백으로 설정
 
 # 참고: 단부루 직접 접속 이슈
-단부루(danbooru.donmai.us)에 직접 접속할 때 Cloudflare/쿠키 문제로 인해 먼저 https://www.donmai.us/ 를 방문한 뒤에야 접속이 풀리는 현상이 보고되었습니다. 이는 단부루 사이트 자체의 동작이며 본 도구와는 별개입니다. 본 도구는 단부루 API 호출과 이미지 로드를 자체 Cloudflare Worker 프록시를 1순위로 경유합니다(Worker 실패 시 퍼블릭 프록시로 자동 폴백). Worker가 Cloudflare 망 내부에서 통신하므로 직접 접속 의존도를 최소화했습니다.
+단부루 API(danbooru.donmai.us)는 Cloudflare 챌린지로 보호되어 서버사이드(프록시) 접근이 차단됩니다. 단, 이미지 CDN(cdn.donmai.us)은 보호 대상이 아니라 직접 로드가 가능합니다. 본 도구는 API 호출을 allorigins 경유로 처리하고, 이미지는 CDN 직접 로드를 사용합니다.
+
+# 알려진 제한
+- github.io(정적 호스팅)에서 브라우저가 danbooru.donmai.us API에 직접 접근하는 것은 CORS로 차단됩니다. 본 도구는 API 호출을 direct 시도 후 allorigins→corsproxy→codetabs 등 제3자 CORS 프록시를 경유해 처리하며, 정적 호스팅 한계상 CORS 프록시에 의존합니다.
+- 프록시 장애 시 미리보기는 정상적으로 저하되지만 이미지를 제공할 수 없습니다. 클라이언트 단독 해결책은 없으며, 잠시 후 재시도해야 합니다.
+- cdn.donmai.us 이미지(<img>로 로드)는 위 CORS 제한과 무관하게 항상 직접 로드됩니다.
+- "donmai.us를 먼저 방문"하는 패턴은 브라우저에서 danbooru.donmai.us로 직접 이동할 때만 의미가 있으며, 본 도구의 API 호출에는 도움이 되지 않습니다.

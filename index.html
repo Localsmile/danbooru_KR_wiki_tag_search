@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://cdn.donmai.us" crossorigin>
 <link rel="preconnect" href="https://danbooru.donmai.us" crossorigin>
 <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+<link rel="preconnect" href="https://cdn.statically.com" crossorigin>
 <link rel="preconnect" href="https://corsproxy.io" crossorigin>
-<link rel="dns-prefetch" href="https://api.codetabs.com">
 <link rel="dns-prefetch" href="https://api.allorigins.win">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -92,7 +92,7 @@ details#opt[open]>summary .chev{transform:rotate(180deg)}
 .tg .x{cursor:pointer;color:var(--tx3);font-size:inherit;line-height:1;padding:6px 8px;margin:-6px -4px -6px 0;border-radius:3px;display:inline-flex;align-items:center;justify-content:center}
 .tg .x:hover{color:var(--red);background:rgba(255,255,255,.04)}
 #bar{color:var(--tx3);font-size:calc(12px + var(--fs));min-height:18px}
-#proxyHint{color:var(--amb);margin-left:8px;font-size:calc(11px + var(--fs))}
+.kt-note{color:var(--tx3);font-size:calc(11px + var(--fs));text-align:center;padding:4px 0 2px}
 #res{flex:1;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--r);min-height:0;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse}
 th{position:sticky;top:0;background:var(--s2);padding:7px 10px;text-align:left;font-weight:600;font-size:calc(11px + var(--fs));color:var(--tx2);border-bottom:1px solid var(--bd);z-index:1;text-transform:uppercase;letter-spacing:.3px}
@@ -213,13 +213,14 @@ tr.r{-webkit-user-select:none;user-select:none}
 <div id="cbar"><div class="cbl"><button id="cpb" type="button">복사</button><button id="clb" type="button" style="color:var(--red)">초기화</button><span class="cnt" id="cnt"></span></div></div>
 <div class="tags" id="ptags"></div>
 </div>
-<div id="bar"><span id="barTxt"></span><span id="proxyHint"></span></div>
+<div id="bar"><span id="barTxt"></span></div>
 <div id="res">
 <table><thead><tr><th style="min-width:140px">태그</th><th>설명</th></tr></thead><tbody id="tb"></tbody></table>
 <div id="sentinel" style="height:1px"></div>
 <div id="info">데이터 불러오는 중...</div>
 </div>
 <div id="pv" role="dialog" aria-label="미리보기"></div>
+<div class="kt-note">※ KT 인터넷 등 일부 통신환경에서는 이미지가 표시되지 않을 수 있습니다.</div>
 <footer id="ftr"><span class="v">로컬AI</span><span>·</span><span>v2.0</span><span>·</span><button id="infoBtn" type="button" aria-haspopup="dialog">정보</button></footer>
 </div>
 <div class="mdl" id="aboutMdl" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
@@ -232,6 +233,12 @@ tr.r{-webkit-user-select:none;user-select:none}
 <p><a href="https://tag.erie.uk/" target="_blank" rel="noopener">이미지 프롬프트 헬퍼 (BETA)</a> — 이미지 프롬프트 작성 보조 도구</p>
 <p><a href="https://github.com/Localsmile/danbooru-tag-selector-KR-wiki/raw/refs/heads/main/danbooru-tag-selector.user.js" target="_blank" rel="noopener">Danbooru 태그 선택기 (KR Wiki)</a> — Tampermonkey용 단부루 태그 복사 도구</p>
 <h4>패치노트</h4>
+<h5>v2.2 — 2026.06.22</h5>
+<ul>
+<li>이미지 로드 다단 폴백 체인 복원: direct → wsrv → statically → corsproxy</li>
+<li>프록시 상태 표시 제거</li>
+<li>KT 인터넷 등 일부 통신환경 안내문 추가</li>
+</ul>
 <h5>v2.0 — 2026.06.20</h5>
 <ul>
 <li>UI 전면 개편: 정제된 다크 톤, 포커스 글로우, 옵션 패널 개선</li>
@@ -264,24 +271,44 @@ var mj=null,mn=null,shown=200,lastTotal=0;
 var cfg={art:'',space:false,sep:'cs',pesc:false,fs:18,quick:true,preview:true};
 var DAPI='https://danbooru.donmai.us';
 var PROXIES=[
+{name:'direct',build:function(u){return u}},
 {name:'allorigins',build:function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}},
-{name:'corsproxy',build:function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}},
+{name:'corsproxy',build:function(u){return'https://corsproxy.io/?url='+encodeURIComponent(u)}},
 {name:'codetabs',build:function(u){return'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)}}
 ];
-	var pxIdx=0;
+var pxIdx=0;
+var FETCH_TIMEOUT=8000;
+function isLikelyJson(s){if(!s)return false;var t=s.trimStart();return t.charAt(0)==='['||t.charAt(0)==='{'}
+var PREVIEW_LIMIT=2;
 var imgCache=new Map();
+var imgInflight=new Map();
+var IMG_CACHE_TTL_OK=10*60*1000;
+var IMG_CACHE_TTL_EMPTY=2*60*1000;
+var IMG_CACHE_TTL_BLOCKED=15*1000;
+function cacheGet(tag){var e=imgCache.get(tag);if(!e)return null;var ttl=e.v.state==='ok'?IMG_CACHE_TTL_OK:e.v.state==='empty'?IMG_CACHE_TTL_EMPTY:IMG_CACHE_TTL_BLOCKED;if(Date.now()-e.t>ttl){imgCache.delete(tag);return null}return e.v}
+function cacheSet(tag,v){imgCache.set(tag,{t:Date.now(),v:v})}
+function Limiter(max){this.max=max;this.run=0;this.q=[]}
+Limiter.prototype.push=function(fn){var s=this;return new Promise(function(res,rej){s.q.push({fn:fn,res:res,rej:rej});s.tick()})};
+Limiter.prototype.tick=function(){while(this.run<this.max&&this.q.length){var it=this.q.shift();this.run++;var s=this;it.fn().then(it.res,it.rej).finally(function(){s.run--;s.tick()})}};
+var apiQ=new Limiter(3);
 var isMobile=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 var hasHover=!!(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches);
 var isTouch=isMobile&&!hasHover;
 var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-var IMG_PXS=[function(u){return u},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PXS=[
+function(u){return u},
+function(u){return'https://wsrv.nl/?url='+encodeURIComponent(u)},
+function(u){return u.replace(/^https?:\/\//,'https://cdn.statically.com/img/')},
+function(u){return'https://corsproxy.io/?url='+encodeURIComponent(u)}
+];
 var IMG_PX_NAMES=['direct','wsrv','statically','corsproxy'];
+// imgPxStart is immutable at runtime. Each <img> falls back independently via data-pxi.
 var imgPxStart=0;
 function imgSrc(u){return IMG_PXS[imgPxStart](u)}
 function proxyImg(u){return imgSrc(u)}
-function previewImgErr(img){var i=parseInt(img.dataset.pxi||String(imgPxStart),10)+1;if(i>=IMG_PXS.length){img.style.display='none';return}img.dataset.pxi=String(i);if(i>imgPxStart)imgPxStart=i;img.src=IMG_PXS[i](img.dataset.src0||img.src)}
+function previewImgErr(img){var i=+img.dataset.pxi||0;var s0=img.dataset.src0;if(!s0)return img.style.display='none';i++;if(i<IMG_PXS.length){img.dataset.pxi=i;img.src=imgSrc(s0);return}img.style.display='none'}
 window.previewImgErr=previewImgErr
 function getSep(){return cfg.sep==='nl'?'\n':', '}
 function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=ln[i];if(q){if(ch==='"'&&ln[i+1]==='"'){c+='"';i++}else if(ch==='"'){q=false}else{c+=ch}}else{if(ch==='"'){q=true}else if(ch===','){r.push(c);c=''}else{c+=ch}}}r.push(c);return r}
@@ -304,12 +331,43 @@ function buildCats(){var el=document.getElementById('cats');var frag=document.cr
 function buildSubs(){var el=document.getElementById('subs'),sp=document.getElementById('subp');if(!mj||!tax[mj]){el.replaceChildren();sp.classList.remove('v');return}sp.classList.add('v');var frag=document.createDocumentFragment();function mk(label,val,active){var s=document.createElement('span');s.setAttribute('role','tab');s.tabIndex=0;s.setAttribute('aria-selected',active?'true':'false');if(active)s.className='on';s.dataset.v=val;s.textContent=label;return s}frag.appendChild(mk('전체','',mn===null));tax[mj].forEach(function(s){frag.appendChild(mk(s,s,mn===s))});el.replaceChildren(frag)}
 function syncCfg(){document.querySelectorAll('#fmtA [data-a]').forEach(function(b){b.classList.toggle('on',b.dataset.a===(cfg.art||''))});document.querySelectorAll('#fmtF [data-f]').forEach(function(b){b.classList.toggle('on',b.dataset.f===(cfg.space?'1':'0'))});document.querySelectorAll('#fmtE [data-e]').forEach(function(b){b.classList.toggle('on',b.dataset.e===(cfg.pesc?'1':'0'))});document.querySelectorAll('#fmtS [data-s]').forEach(function(b){b.classList.toggle('on',b.dataset.s===(cfg.sep||'cs'))});var qk=document.getElementById('qkb'),pk=document.getElementById('pkb');qk.classList.toggle('on',!!cfg.quick);qk.setAttribute('aria-pressed',cfg.quick?'true':'false');pk.classList.toggle('on',!cfg.quick);pk.setAttribute('aria-pressed',!cfg.quick?'true':'false');var pv=document.getElementById('pvb');pv.classList.toggle('on',!!cfg.preview);pv.setAttribute('aria-pressed',cfg.preview?'true':'false');pv.textContent=cfg.preview?'켜기':'끄기';updateStl()}
 var timer;function debounce(fn,ms){return function(){clearTimeout(timer);timer=setTimeout(fn,ms)}}
-	function setProxyHint(){var el=document.getElementById('proxyHint');if(pxIdx>=PROXIES.length){el.textContent='· 직접 접속'}else{el.textContent='· 프록시 경유('+PROXIES[pxIdx].name+')'}}
-	async function dFetch(path){var url=DAPI+path;for(var i=pxIdx;i<PROXIES.length;i++){try{var r=await fetch(PROXIES[i].build(url));if(r.ok){if(i!==pxIdx){pxIdx=i;setProxyHint()}return r}}catch(e){}}try{var r=await fetch(url);if(r.ok){if(pxIdx!==PROXIES.length){pxIdx=PROXIES.length;setProxyHint()}return r}}catch(e){}pxIdx=0;setProxyHint();return new Response('[]',{status:599})}
-async function fetchPreview(tag){if(imgCache.has(tag))return imgCache.get(tag);var imgs=[],src='';try{var r=await dFetch('/wiki_pages.json?search[title]='+encodeURIComponent(tag));if(r.ok){var ws=await r.json();if(ws.length&&ws[0].body){var b=ws[0].body,pids=[];var ei=b.search(/h[1-6]\.\s*Examples?\b/i);if(ei!==-1){var sec=b.slice(ei),lines=sec.split('\n'),st=lines[0]+'\n';for(var i=1;i<lines.length;i++){if(/^h[1-6]\./.test(lines[i]))break;st+=lines[i]+'\n'}var m,re=/post\s*#(\d+)/gi;while((m=re.exec(st))&&pids.length<2)pids.push(m[1])}if(pids.length){var pr=await dFetch('/posts.json?tags=id:'+pids.join(',')+'&limit='+pids.length);if(pr.ok)(await pr.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='wiki'}}}}catch(e){}if(!imgs.length){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=2');if(r.ok)(await r.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<2)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}catch(e){}}var res=imgs.length?{src:src,imgs:imgs}:null;imgCache.set(tag,res);return res}
+function setProxyHint(){}
+async function dFetch(path){
+var url=DAPI+path;
+dFetch._n=(dFetch._n||0)+1;
+var start=(dFetch._n%20===0)?0:pxIdx;
+for(var i=start;i<PROXIES.length;i++){
+try{
+var r=await fetch(PROXIES[i].build(url),{cache:'no-store',signal:(AbortSignal.timeout?AbortSignal.timeout(FETCH_TIMEOUT):undefined)});
+if(!r.ok)continue;
+var txt=await r.text();
+if(!isLikelyJson(txt))continue;
+if(i!==pxIdx){pxIdx=i;setProxyHint()}
+return new Response(txt,{status:200,headers:{'Content-Type':'application/json'}});
+}catch(e){}
+}
+return new Response('[]',{status:599});
+}
+async function fetchPreview(tag){
+var hit=cacheGet(tag);if(hit)return hit;
+if(imgInflight.has(tag))return imgInflight.get(tag);
+var p=(async function(){
+var imgs=[],src='',reached=false;
+try{
+try{var r=await apiQ.push(function(){return dFetch('/wiki_pages.json?search[title]='+encodeURIComponent(tag))});if(r.ok){reached=true;var ws=await r.json();if(ws.length&&ws[0].body){var b=ws[0].body,pids=[];var ei=b.search(/h[1-6]\.\s*Examples?\b/i);if(ei!==-1){var sec=b.slice(ei),lines=sec.split('\n'),st=lines[0]+'\n';for(var i=1;i<lines.length;i++){if(/^h[1-6]\./.test(lines[i]))break;st+=lines[i]+'\n'}var m,re=/post\s*#(\d+)/gi;while((m=re.exec(st))&&pids.length<PREVIEW_LIMIT)pids.push(m[1])}if(pids.length){var pr=await apiQ.push(function(){return dFetch('/posts.json?tags=id:'+pids.join(',')+'&limit='+pids.length)});if(pr.ok){reached=true;(await pr.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<PREVIEW_LIMIT)imgs.push({u:p.preview_file_url,id:p.id})})}if(imgs.length)src='wiki'}}}}catch(e){}
+if(!imgs.length){try{var r2=await apiQ.push(function(){return dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit='+PREVIEW_LIMIT)});if(r2.ok){reached=true;(await r2.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<PREVIEW_LIMIT)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}}catch(e){}}
+return imgs.length?{state:'ok',src:src,imgs:imgs}:reached?{state:'empty'}:{state:'blocked'};
+}finally{imgInflight.delete(tag)}
+})();
+imgInflight.set(tag,p);
+var v=await p;cacheSet(tag,v);return v;
+}
 function hidePreview(){document.getElementById('pv').classList.remove('v');pvRow=null;clearTimeout(pvTimer);clearTimeout(pvHideTimer)}
 function posPv(tr){var pv=document.getElementById('pv');if(window.innerWidth<=600)return;var rc=tr.getBoundingClientRect();var ph=pv.offsetHeight,pw=pv.offsetWidth;var t=rc.top-ph-8;if(t<8)t=rc.bottom+8;if(t+ph>window.innerHeight-8)t=window.innerHeight-ph-8;var l=rc.left;l=Math.max(8,Math.min(l,window.innerWidth-pw-8));pv.style.top=Math.max(8,t)+'px';pv.style.left=l+'px'}
-async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;if(!data){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(imgSrc(im.u))+'" data-src0="'+esc(im.u)+'" data-pxi="'+imgPxStart+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
+async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;
+if(data.state==='blocked'){pv.innerHTML='<div class="pv-ld">API 일시적으로 접근 불가 — 잠시 후 다시 시도하세요 <button type="button" id="pvRetry" style="margin-left:6px;padding:3px 9px">다시 시도</button></div>';var btn=pv.querySelector('#pvRetry');if(btn)btn.addEventListener('click',function(){imgCache.delete(tr.dataset.n);imgInflight.delete(tr.dataset.n);showPv(tr)});return}
+if(data.state==='empty'){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}
+var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(imgSrc(im.u))+'" data-src0="'+esc(im.u)+'" data-pxi="'+imgPxStart+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
 function syncURL(){var p=new URLSearchParams();var qv=q().value.trim();if(qv)p.set('q',qv);if(mj)p.set('cat',mj);if(mn)p.set('sub',mn);var nu=location.pathname+(p.toString()?'?'+p:'');history.replaceState(null,'',nu)}
 function loadURL(){var p=new URLSearchParams(location.search);var qv=p.get('q');if(qv){q().value=qv;document.getElementById('qclr').classList.add('v')}var c=p.get('cat');if(c&&(c in tax)){mj=c;var s=p.get('sub');if(s&&tax[c].indexOf(s)>=0)mn=s}}
 function setup(){

@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://cdn.donmai.us" crossorigin>
 <link rel="preconnect" href="https://danbooru.donmai.us" crossorigin>
 <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+<link rel="preconnect" href="https://cdn.statically.com" crossorigin>
+<link rel="preconnect" href="https://corsproxy.io" crossorigin>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0c0c0c;--s1:#141414;--s2:#1b1b1b;--s3:#232323;--s4:#2c2c2c;--bd:#262626;--bd2:#343434;--tx:#c2c2c2;--tx2:#8e8e8e;--tx3:#6a6a6a;--tx4:#4a4a4a;--ac:#6e9aff;--acd:#1b3163;--acg:rgba(110,154,255,.14);--ptag:#162033;--red:#c55;--amb:#d9a657;--c1:#e87070;--r:6px;--fs:2px;--sa:env(safe-area-inset-bottom,0px)}
@@ -40,7 +42,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 #acts{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
 #acts .run{background:var(--acd);border-color:var(--ac);color:#dde6ff;font-weight:700}
 .st{font-size:calc(11px + var(--fs));color:var(--tx3)}
-.st .px{color:var(--amb)}
+.kt-note{color:var(--tx3);font-size:calc(11px + var(--fs));text-align:center;padding:4px 0 2px}
 #out{flex:1;overflow-y:auto;border:1px solid var(--bd);border-radius:var(--r);min-height:0;padding:10px;-webkit-overflow-scrolling:touch}
 .asec{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px;margin-bottom:10px}
 .asec:last-child{margin-bottom:0}
@@ -120,6 +122,7 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 <div id="artistResults"></div>
 <div id="info">프롬프트를 입력한 뒤 추출을 눌러 보세요</div>
 </div>
+<div class="kt-note">※ KT 인터넷 등 일부 통신환경에서는 이미지가 표시되지 않을 수 있습니다.</div>
 <footer id="ftr"><span class="v">로컬AI</span><span>·</span><span>v2.0</span><span>·</span><button id="infoBtn" type="button" aria-haspopup="dialog">정보</button></footer>
 </div>
 <div class="mdl" id="aboutMdl" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
@@ -132,6 +135,12 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 <p><a href="https://tag.erie.uk/" target="_blank" rel="noopener">이미지 프롬프트 헬퍼 (BETA)</a> — 이미지 프롬프트 작성 보조 도구</p>
 <p><a href="https://github.com/Localsmile/danbooru-tag-selector-KR-wiki/raw/refs/heads/main/danbooru-tag-selector.user.js" target="_blank" rel="noopener">Danbooru 태그 선택기 (KR Wiki)</a> — Tampermonkey용 단부루 태그 복사 도구</p>
 <h4>패치노트</h4>
+<h5>v2.2 — 2026.06.22</h5>
+<ul>
+<li>이미지 로드 다단 폴백 체인 복원: direct → wsrv → statically → corsproxy</li>
+<li>프록시 상태 표시 제거</li>
+<li>KT 인터넷 등 일부 통신환경 안내문 추가</li>
+</ul>
 <h5>v2.0 — 2026.06.20</h5>
 <ul>
 <li>UI 전면 개편: 정제된 다크 톤, 포커스 글로우</li>
@@ -158,24 +167,32 @@ var CSV='danbooru_tags_classified.csv';
 var CSV_TTL=24*60*60*1000;
 var DAPI='https://danbooru.donmai.us';
 var PROXIES=[
+{name:'direct',build:function(u){return u}},
 {name:'allorigins',build:function(u){return'https://api.allorigins.win/raw?url='+encodeURIComponent(u)}},
-{name:'corsproxy',build:function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}},
+{name:'corsproxy',build:function(u){return'https://corsproxy.io/?url='+encodeURIComponent(u)}},
 {name:'codetabs',build:function(u){return'https://api.codetabs.com/v1/proxy/?quest='+encodeURIComponent(u)}}
 ];
-var pxIdx=0,pxName=PROXIES[0].name;
+var pxIdx=0;
+var FETCH_TIMEOUT=8000;
+function isLikelyJson(s){if(!s)return false;var t=s.trimStart();return t.charAt(0)==='['||t.charAt(0)==='{'}
 var artistDB=new Set();
 var results=[];
 var reqSeq=0;
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-var IMG_PXS=[function(u){return u},function(u){return'https://wsrv.nl/?url='+String(u).replace(/^https?:\/\//,'')},function(u){return'https://cdn.statically.io/img/'+String(u).replace(/^https?:\/\//,'')},function(u){return'https://corsproxy.io/?'+encodeURIComponent(u)}];
+var IMG_PXS=[
+function(u){return u},
+function(u){return'https://wsrv.nl/?url='+encodeURIComponent(u)},
+function(u){return u.replace(/^https?:\/\//,'https://cdn.statically.com/img/')},
+function(u){return'https://corsproxy.io/?url='+encodeURIComponent(u)}
+];
 var IMG_PX_NAMES=['direct','wsrv','statically','corsproxy'];
 var imgPxStart=0;
 function imgSrc(u){return IMG_PXS[imgPxStart](u)}
-function imgErr(img){var i=parseInt(img.dataset.pxi||String(imgPxStart),10)+1;if(i>=IMG_PXS.length){img.replaceWith(document.createTextNode('이미지 로드 실패'));return}img.dataset.pxi=String(i);if(i>imgPxStart){imgPxStart=i;var pn=document.getElementById('status');if(pn&&!/이미지/.test(pn.textContent))pn.innerHTML+=' <span class="px">· 이미지 '+IMG_PX_NAMES[i]+'</span>'}img.src=IMG_PXS[i](img.dataset.src0)}
+function imgErr(img){var i=+img.dataset.pxi||0;var s0=img.dataset.src0;if(!s0)return img.replaceWith(document.createTextNode('이미지 로드 실패'));i++;if(i<IMG_PXS.length){img.dataset.pxi=i;img.src=imgSrc(s0);return}img.replaceWith(document.createTextNode('이미지 로드 실패'))}
 window.imgErr=imgErr
 function toast(m){var e=document.getElementById('tt');e.textContent=m;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){e.classList.remove('on')},1400)}
-function setStatus(t){document.getElementById('status').innerHTML=t+(pxName?' <span class="px">· 프록시 '+pxName+'</span>':'')}
+function setStatus(t){document.getElementById('status').textContent=t}
 function parseCSV(ln){var r=[],c='',q=false;for(var i=0;i<ln.length;i++){var ch=ln[i];if(q){if(ch==='"'&&ln[i+1]==='"'){c+='"';i++}else if(ch==='"'){q=false}else{c+=ch}}else{if(ch==='"'){q=true}else if(ch===','){r.push(c);c=''}else{c+=ch}}}r.push(c);return r}
 
 function parseDB(text){var ls=text.split('\n');for(var i=1;i<ls.length;i++){var ln=ls[i].trim();if(!ln)continue;var c=parseCSV(ln);if(c.length>=2&&+c[1]===1)artistDB.add(c[0].toLowerCase())}}
@@ -213,9 +230,23 @@ if(!tokens.length)tokens=splitTop(text);
 tokens.forEach(function(t){var explicit=isExplicitArtistToken(t);var n=canonName(t);if(!n||seen[n])return;if(explicit||artistDB.has(n)){seen[n]=1;found.push(n)}});
 return found}
 
-async function dFetch(path){var url=DAPI+path;for(var i=pxIdx;i<PROXIES.length;i++){try{var r=await fetch(PROXIES[i].build(url));if(r.ok){pxIdx=i;pxName=PROXIES[i].name;return r}}catch(e){}}
-try{var r=await fetch(url);if(r.ok){pxIdx=PROXIES.length;pxName='direct';return r}}catch(e){}
-throw new Error('fetch failed')}
+function setProxyHint(){}
+async function dFetch(path){
+var url=DAPI+path;
+dFetch._n=(dFetch._n||0)+1;
+var start=(dFetch._n%20===0)?0:pxIdx;
+for(var i=start;i<PROXIES.length;i++){
+try{
+var r=await fetch(PROXIES[i].build(url),{cache:'no-store',signal:(AbortSignal.timeout?AbortSignal.timeout(FETCH_TIMEOUT):undefined)});
+if(!r.ok)continue;
+var txt=await r.text();
+if(!isLikelyJson(txt))continue;
+if(i!==pxIdx){pxIdx=i;setProxyHint()}
+return new Response(txt,{status:200,headers:{'Content-Type':'application/json'}});
+}catch(e){}
+}
+throw new Error('fetch failed');
+}
 
 async function fetchImages(tag){try{var r=await dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit=6');if(!r.ok)return[];var posts=await r.json();var imgs=[];posts.forEach(function(p){var iu=p.large_file_url||p.preview_file_url;if(iu&&imgs.length<6)imgs.push({u:iu,id:p.id,score:p.score||0,rating:(p.rating||'').toUpperCase()})});return imgs}catch(e){return[]}}
 
