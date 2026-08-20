@@ -278,7 +278,7 @@ var apiQ=new Limiter(3);
 var isMobile=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 var hasHover=!!(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches);
 var isTouch=isMobile&&!hasHover;
-var pvRow=null,pvTimer,pvHideTimer,lpTimer,lpRow=null,lpBlock=false;
+var pvRow=null,pvTimer,pvHideTimer,pvRequestId=0,lpTimer,lpRow=null,lpBlock=false;
 function fmt(n){return n.toLocaleString()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 var IMG_PXS=[
@@ -338,16 +338,17 @@ if(imgInflight.has(tag))return imgInflight.get(tag);
 var p=(async function(){
 var imgs=[],src='',reached=false;
 try{
-try{var r=await apiQ.push(function(){return dFetch('/posts.json?tags='+encodeURIComponent(tag)+'&limit='+PREVIEW_LIMIT)});if(r.ok){reached=true;(await r.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<PREVIEW_LIMIT)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}}catch(e){}
+try{var r=await apiQ.push(function(){return dFetch('/wiki_pages.json?search[title]='+encodeURIComponent(tag)+'&limit=1')});if(r.ok){reached=true;var ws=await r.json();if(ws.length&&ws[0].body){var b=ws[0].body,pids=[];var ei=b.search(/h[1-6]\.\s*Examples?\b/i);if(ei!==-1){var sec=b.slice(ei),lines=sec.split('\n'),st=lines[0]+'\n';for(var i=1;i<lines.length;i++){if(/^h[1-6]\./.test(lines[i]))break;st+=lines[i]+'\n'}var m,re=/post\s*#(\d+)/gi;while((m=re.exec(st))&&pids.length<PREVIEW_LIMIT)pids.push(m[1])}if(pids.length){var pr=await apiQ.push(function(){return dFetch('/posts.json?tags='+encodeURIComponent('id:'+pids.join(','))+'&limit='+pids.length)});if(pr.ok){reached=true;(await pr.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<PREVIEW_LIMIT)imgs.push({u:p.preview_file_url,id:p.id})})}if(imgs.length)src='wiki'}}}}catch(e){}
+if(!imgs.length){try{var r2=await apiQ.push(function(){return dFetch('/posts.json?tags='+encodeURIComponent(tag+' order:score')+'&limit='+PREVIEW_LIMIT)});if(r2.ok){reached=true;(await r2.json()).forEach(function(p){if(p.preview_file_url&&imgs.length<PREVIEW_LIMIT)imgs.push({u:p.preview_file_url,id:p.id})});if(imgs.length)src='posts'}}catch(e){}}
 return imgs.length?{state:'ok',src:src,imgs:imgs}:reached?{state:'empty'}:{state:'blocked'};
 }finally{imgInflight.delete(tag)}
 })();
 imgInflight.set(tag,p);
 var v=await p;cacheSet(tag,v);return v;
 }
-function hidePreview(){document.getElementById('pv').classList.remove('v');pvRow=null;clearTimeout(pvTimer);clearTimeout(pvHideTimer)}
+function hidePreview(){pvRequestId++;document.getElementById('pv').classList.remove('v');pvRow=null;clearTimeout(pvTimer);clearTimeout(pvHideTimer)}
 function posPv(tr){var pv=document.getElementById('pv');if(window.innerWidth<=600)return;var rc=tr.getBoundingClientRect();var ph=pv.offsetHeight,pw=pv.offsetWidth;var t=rc.top-ph-8;if(t<8)t=rc.bottom+8;if(t+ph>window.innerHeight-8)t=window.innerHeight-ph-8;var l=rc.left;l=Math.max(8,Math.min(l,window.innerWidth-pw-8));pv.style.top=Math.max(8,t)+'px';pv.style.left=l+'px'}
-async function showPv(tr){if(!cfg.preview)return;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;
+async function showPv(tr){if(!cfg.preview)return;var requestId=++pvRequestId;var pv=document.getElementById('pv');pv.innerHTML='<div class="pv-ld">불러오는 중...</div>';pv.classList.add('v');posPv(tr);var data=await fetchPreview(tr.dataset.n);if(requestId!==pvRequestId||!pv.classList.contains('v'))return;if(!isTouch&&pvRow!==tr)return;
 if(data.state==='blocked'){pv.innerHTML='<div class="pv-ld">API 일시적으로 접근 불가 — 잠시 후 다시 시도하세요 <button type="button" id="pvRetry" style="margin-left:6px;padding:3px 9px">다시 시도</button></div>';var btn=pv.querySelector('#pvRetry');if(btn)btn.addEventListener('click',function(){imgCache.delete(tr.dataset.n);imgInflight.delete(tr.dataset.n);showPv(tr)});return}
 if(data.state==='empty'){pv.innerHTML='<div class="pv-ld">예시 이미지 없음</div>';setTimeout(function(){if(pv.classList.contains('v'))pv.classList.remove('v')},900);return}
 var h='<div class="pv-g">';data.imgs.forEach(function(im){h+='<a href="'+DAPI+'/posts/'+im.id+'" target="_blank" rel="noopener"><img src="'+esc(imgSrc(im.u))+'" data-src0="'+esc(im.u)+'" data-pxi="'+imgPxStart+'" alt="" loading="lazy" decoding="async" onerror="previewImgErr(this)"></a>'});h+='</div><div class="pv-s"><span>'+(data.src==='wiki'?'wiki':'posts')+'</span><span>'+esc(tr.dataset.n)+'</span></div>';pv.innerHTML=h;posPv(tr)}
