@@ -32,9 +32,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{o
 #nav .nav-i a{color:var(--tx3);text-decoration:none;padding:6px 12px;font-size:calc(12px + var(--fs));border-radius:var(--r) var(--r) 0 0;border-bottom:2px solid transparent;transition:color .12s,background .12s,border-color .12s;margin-bottom:-1px;font-weight:500}
 #nav .nav-i a:hover{color:var(--tx2);background:var(--s1)}
 #nav .nav-i a.on{color:var(--ac);border-bottom-color:var(--ac)}
-#nav .ext{display:inline-flex;align-items:center;gap:5px;color:var(--tx3);text-decoration:none;padding:5px 11px;font-size:calc(11px + var(--fs));border:1px solid var(--bd);border-radius:999px;background:var(--s1);transition:.12s;margin-bottom:-1px;font-weight:600;white-space:nowrap}
-#nav .ext:hover{color:var(--ac);border-color:var(--ac);background:var(--s2)}
-#nav .ext .badge{font-size:calc(9px + var(--fs));color:var(--ac);background:var(--acd);padding:1px 5px;border-radius:6px;font-weight:700;letter-spacing:.3px}
 #intro{font-size:calc(12px + var(--fs));color:var(--tx2);background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:9px 12px;line-height:1.55;flex-shrink:0}
 #intro b{color:var(--ac)}
 #intro .nt{color:var(--tx4);font-size:calc(11px + var(--fs));margin-top:5px;display:block;font-style:italic}
@@ -99,7 +96,6 @@ details#opt[open]>summary .chev{transform:rotate(180deg)}
 #app{padding:8px 8px calc(8px + var(--sa));gap:6px}
 #nav{gap:6px}
 #nav .nav-i a{padding:6px 9px;font-size:calc(11px + var(--fs))}
-#nav .ext{padding:5px 9px;font-size:calc(10px + var(--fs))}
 #q{padding:11px 12px}
 .imgs{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
 .copybar button{padding:8px 12px}
@@ -107,7 +103,6 @@ details#opt[open]>summary .chev{transform:rotate(180deg)}
 }
 @media(hover:none){
 #nav .nav-i a:hover{background:transparent}
-#nav .ext:hover{background:var(--s1)}
 }
 </style>
 </head>
@@ -120,7 +115,6 @@ details#opt[open]>summary .chev{transform:rotate(180deg)}
 <a href="artist.html">아티스트 작품</a>
 <a href="coretag.html" class="on">캐릭터 코어태그 검색</a>
 </div>
-<a class="ext" href="https://tag.erie.uk/" target="_blank" rel="noopener">이미지 프롬프트 헬퍼<span class="badge">BETA</span></a>
 </nav>
 
 <div id="intro">

@@ -34,9 +34,6 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 #nav .nav-i a{color:var(--tx3);text-decoration:none;padding:6px 12px;font-size:calc(12px + var(--fs));border-radius:var(--r) var(--r) 0 0;border-bottom:2px solid transparent;transition:color .12s,background .12s,border-color .12s;margin-bottom:-1px;font-weight:500}
 #nav .nav-i a:hover{color:var(--tx2);background:var(--s1)}
 #nav .nav-i a.on{color:var(--ac);border-bottom-color:var(--ac)}
-#nav .ext{display:inline-flex;align-items:center;gap:5px;color:var(--tx3);text-decoration:none;padding:5px 11px;font-size:calc(11px + var(--fs));border:1px solid var(--bd);border-radius:999px;background:var(--s1);transition:.12s;margin-bottom:-1px;font-weight:600;white-space:nowrap}
-#nav .ext:hover{color:var(--ac);border-color:var(--ac);background:var(--s2)}
-#nav .ext .badge{font-size:calc(9px + var(--fs));color:var(--ac);background:var(--acd);padding:1px 5px;border-radius:6px;font-weight:700;letter-spacing:.3px}
 #desc{font-size:calc(11px + var(--fs));color:var(--tx2);padding:2px 0}
 #inp{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px;flex-shrink:0}
 #acts{display:flex;gap:6px;margin-top:8px;align-items:center;flex-wrap:wrap}
@@ -85,7 +82,6 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 #app{padding:8px 8px calc(8px + var(--sa));gap:6px;max-width:100%}
 #nav{gap:6px}
 #nav .nav-i a{padding:6px 9px;font-size:calc(11px + var(--fs))}
-#nav .ext{padding:5px 9px;font-size:calc(10px + var(--fs))}
 #inp{padding:8px}
 #out{padding:8px}
 .asec{padding:8px;margin-bottom:8px}
@@ -94,7 +90,6 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 }
 @media(hover:none){
 #nav .nav-i a:hover{background:transparent}
-#nav .ext:hover{background:var(--s1)}
 }
 </style>
 </head>
@@ -107,7 +102,6 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 <a href="artist.html" class="on">아티스트 작품</a>
 <a href="coretag.html">캐릭터 코어태그 검색</a>
 </div>
-<a class="ext" href="https://tag.erie.uk/" target="_blank" rel="noopener">이미지 프롬프트 헬퍼<span class="badge">BETA</span></a>
 </nav>
 <div id="desc">프롬프트에서 아티스트를 자동 추출합니다 · 아티스트별 Danbooru 작품을 한눈에 확인</div>
 <div id="inp">
@@ -144,8 +138,6 @@ textarea{resize:vertical;padding:10px 12px;min-height:74px;font-size:calc(13px +
 <h5>v2.0 — 2026.06.20</h5>
 <ul>
 <li>UI 전면 개편: 정제된 다크 톤, 포커스 글로우</li>
-<li>도움말/안내문을 사용자 친화적 톤으로 정리</li>
-<li>상단 우측에 외부 도구(이미지 프롬프트 헬퍼 BETA) 링크 추가</li>
 <li>이모지 제거, 텍스트 기반 아이콘으로 통일</li>
 </ul>
 <h5>v1.1 — 2026.04.29</h5>
